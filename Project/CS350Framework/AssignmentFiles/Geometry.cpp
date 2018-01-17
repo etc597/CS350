@@ -17,7 +17,14 @@ bool BarycentricCoordinates(const Vector3& point, const Vector3& a, const Vector
   Vector3 BA = a - b;
   Vector3 BP = point - b;
 
-  u = Math::Dot(BA, BP) / Math::Dot(BA, BA);
+  float denom = Math::Dot(BA, BA);
+
+  if (denom == 0) {
+    u = v = 0;
+    return false;
+  }
+
+  u = Math::Dot(BA, BP) / denom;
   v = 1 - u;
 
   float minRange = -expansionEpsilon;
@@ -45,8 +52,8 @@ bool BarycentricCoordinates(const Vector3& point, const Vector3& a, const Vector
   float f_val = Math::Dot(v0, v2);
 
   float denom = a_val * b_val - b_val * c_val;
-  float u_num = e_val * b_val - b_val * f_val;
-  float v_num = a_val * f_val - e_val * c_val;
+  float u_num = a_val * f_val - e_val * c_val;
+  float v_num = e_val * b_val - b_val * f_val;
 
   u = u_num / denom;
   v = v_num / denom;
