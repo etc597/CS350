@@ -315,16 +315,14 @@ void Plane::Set(const Triangle& triangle)
 
 void Plane::Set(const Vector3& p0, const Vector3& p1, const Vector3& p2)
 {
-  /******Student:Assignment1******/
-  // Set mData from the 3 points. Note: You should most likely normalize the plane normal.
-  Warn("Assignment1: Required function un-implemented");
+  Vector3 normal = Math::Cross(p1 - p0, p2 - p0);
+  normal.AttemptNormalize();
+  mData = Vector4(normal.x, normal.y, normal.z, Math::Dot(normal, p0));
 }
 
 void Plane::Set(const Vector3& normal, const Vector3& point)
 {
-  /******Student:Assignment1******/
-  // Set mData from the normal and point. Note: You should most likely normalize the plane normal.
-  Warn("Assignment1: Required function un-implemented");
+  mData = Vector4(normal.x, normal.y, normal.z, Math::Dot(normal, point));
 }
 
 Vector3 Plane::GetNormal() const
