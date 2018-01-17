@@ -172,9 +172,39 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
              const Vector3& aabbMin, const Vector3& aabbMax, float& t, float parallelCheckEpsilon)
 {
   ++Application::mStatistics.mRayAabbTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  float tmin = 0;
+  float tmax = 0;
+  bool first = true;
+
+  for (int i = 0; i < 3; ++i) {
+    if (rayDir[i] == 0) {
+      continue;
+    }
+    float min = (aabbMin[i] - rayStart[i]) / rayDir[i];
+    float max = (aabbMax[i] - rayStart[i]) / rayDir[i];
+    
+    if (rayDir[i] < 0) {
+      Math::Swap(min, max);
+    }
+
+    first ? tmin = min : tmin = Math::Max(min, tmin);
+    first ? tmax = max : tmax = Math::Max(max, tmax);
+
+    first = false;
+  }
+
+  if (tmin > tmax) {
+    return false;
+  }
+
+  if (tmin * tmax <= 0) {
+    t = 0;
+    return true;
+  }
+
+  t = tmin;
+
+  return true;
 }
 
 IntersectionType::Type PlaneTriangle(const Vector4& plane, 
