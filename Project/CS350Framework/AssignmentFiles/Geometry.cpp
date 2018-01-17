@@ -267,9 +267,8 @@ bool SphereSphere(const Vector3& sphereCenter0, float sphereRadius0,
                   const Vector3& sphereCenter1, float sphereRadius1)
 {
   ++Application::mStatistics.mSphereSphereTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+
+  return PointSphere(sphereCenter0, sphereCenter1, sphereRadius0 + sphereRadius1);
 }
 
 bool AabbAabb(const Vector3& aabbMin0, const Vector3& aabbMax0,
