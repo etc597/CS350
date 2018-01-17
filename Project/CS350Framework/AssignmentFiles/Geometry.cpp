@@ -230,9 +230,17 @@ IntersectionType::Type PlaneAabb(const Vector4& plane,
                                  const Vector3& aabbMin, const Vector3& aabbMax)
 {
   ++Application::mStatistics.mPlaneAabbTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+
+  Vector3 c = aabbMin;
+
+  float r = 0;
+  for (int i = 0; i < 3; ++i) {
+    float e = (aabbMax[i] - aabbMin[i]) * 0.f;
+    r += e * plane[i];
+    c[i] += e;
+  }
+
+  return PlaneSphere(plane, c, r);
 }
 
 IntersectionType::Type FrustumTriangle(const Vector4 planes[6],
