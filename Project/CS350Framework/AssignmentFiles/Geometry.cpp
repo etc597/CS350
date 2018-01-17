@@ -212,18 +212,18 @@ IntersectionType::Type PlaneTriangle(const Vector4& plane,
                                      float epsilon)
 {
   ++Application::mStatistics.mPlaneTriangleTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+
+  return static_cast<IntersectionType::Type>(PointPlane(triP0, plane, epsilon)
+    | PointPlane(triP1, plane, epsilon)
+    | PointPlane(triP2, plane, epsilon));
 }
 
 IntersectionType::Type PlaneSphere(const Vector4& plane,
                                    const Vector3& sphereCenter, float sphereRadius)
 {
   ++Application::mStatistics.mPlaneSphereTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+
+  return PointPlane(sphereCenter, plane, sphereRadius);
 }
 
 IntersectionType::Type PlaneAabb(const Vector4& plane,
