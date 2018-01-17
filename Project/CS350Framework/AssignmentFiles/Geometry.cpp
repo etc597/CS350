@@ -257,9 +257,24 @@ IntersectionType::Type FrustumSphere(const Vector4 planes[6],
                                      const Vector3& sphereCenter, float sphereRadius, size_t& lastAxis)
 {
   ++Application::mStatistics.mFrustumSphereTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+  
+  IntersectionType::Type intersection = IntersectionType::Inside;
+
+  for (int i = 0; i < 6; ++i) {
+    size_t current = (lastAxis + i) % 6;
+    IntersectionType::Type type = PlaneSphere(planes[current], sphereCenter, sphereRadius);
+    if (type == IntersectionType::Outside) {
+      return type;
+    }
+    else if (type != IntersectionType::Inside) {
+      intersection = type;
+    }
+  }
+
+  if (intersection != IntersectionType::Inside) {
+    return IntersectionType::Coplanar;
+  }
+  return IntersectionType::Overlaps;
 }
 
 IntersectionType::Type FrustumAabb(const Vector4 planes[6],
