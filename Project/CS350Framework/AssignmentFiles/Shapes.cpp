@@ -322,7 +322,9 @@ void Plane::Set(const Vector3& p0, const Vector3& p1, const Vector3& p2)
 
 void Plane::Set(const Vector3& normal, const Vector3& point)
 {
-  mData = Vector4(normal.x, normal.y, normal.z, Math::Dot(normal, point));
+  Vector3 norm = normal;
+  norm.AttemptNormalize();
+  mData = Vector4(norm.x, norm.y, norm.z, Math::Dot(norm, point));
 }
 
 Vector3 Plane::GetNormal() const
