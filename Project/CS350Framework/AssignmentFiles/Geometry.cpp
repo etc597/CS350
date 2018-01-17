@@ -85,9 +85,12 @@ bool PointSphere(const Vector3& point, const Vector3& sphereCenter, float sphere
 
 bool PointAabb(const Vector3& point, const Vector3& aabbMin, const Vector3& aabbMax)
 {
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  for (int i = 0; i < 3; ++i) {
+    if (outRange(point[i], aabbMin[i], aabbMax[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool RayPlane(const Vector3& rayStart, const Vector3& rayDir,
