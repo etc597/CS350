@@ -72,10 +72,10 @@ IntersectionType::Type PointPlane(const Vector3& point, const Vector4& plane, fl
 {
   Vector4 p = Vector4(point.x, point.y, point.z, -1);
   float w = Math::Dot(plane, p);
-  if (w < epsilon) {
+  if (w > epsilon) {
     return IntersectionType::Inside;
   }
-  else if (w > epsilon) {
+  else if (w < -epsilon) {
     return IntersectionType::Outside;
   }
   return IntersectionType::Coplanar;
@@ -105,7 +105,7 @@ bool RayPlane(const Vector3& rayStart, const Vector3& rayDir,
   Vector3 normal = Vector3(plane.x, plane.y, plane.z);
   float denom = Math::Dot(normal, rayDir);
 
-  if (denom == 0) {
+  if (denom > -parallelCheckEpsilon && denom < parallelCheckEpsilon) {
     return false;
   }
 
