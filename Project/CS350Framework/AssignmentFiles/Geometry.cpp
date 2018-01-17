@@ -248,9 +248,23 @@ IntersectionType::Type FrustumTriangle(const Vector4 planes[6],
                                        float epsilon)
 {
   ++Application::mStatistics.mFrustumTriangleTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+
+  IntersectionType::Type intersection = IntersectionType::Inside;
+
+  for (int i = 0; i < 6; ++i) {
+    IntersectionType::Type type = PlaneTriangle(planes[i], triP0, triP1, triP2, epsilon);
+    if (type == IntersectionType::Outside) {
+      return type;
+    }
+    else if (type != IntersectionType::Inside) {
+      intersection = type;
+    }
+  }
+
+  if (intersection != IntersectionType::Inside) {
+    return IntersectionType::Coplanar;
+  }
+  return IntersectionType::Overlaps;
 }
 
 IntersectionType::Type FrustumSphere(const Vector4 planes[6],
