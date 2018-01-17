@@ -145,8 +145,8 @@ bool RaySphere(const Vector3& rayStart, const Vector3& rayDir,
 
   Vector3 m = sphereCenter - rayStart;
   float a = Math::Dot(rayDir, rayDir);
-  float b = Math::Dot(m, -rayDir);
-  float c = Math::Dot(m, m);
+  float b = -2 * Math::Dot(m, rayDir);
+  float c = Math::Dot(m, m) - sphereRadius * sphereRadius;
 
   float discr = b * b - 4 * a * c; // discriminant
 
@@ -191,6 +191,9 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
 
   for (int i = 0; i < 3; ++i) {
     if (rayDir[i] == 0) {
+      if (rayStart[i] < aabbMin[i] || rayStart[i] > aabbMax[i]) {
+        return false;
+      }
       continue;
     }
     float min = (aabbMin[i] - rayStart[i]) / rayDir[i];
@@ -201,7 +204,7 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
     }
 
     first ? tmin = min : tmin = Math::Max(min, tmin);
-    first ? tmax = max : tmax = Math::Max(max, tmax);
+    first ? tmax = max : tmax = Math::Min(max, tmax);
 
     first = false;
   }
@@ -216,6 +219,10 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
   }
 
   t = tmin;
+
+  if (t < 0) {
+    return false;
+  }
 
   return true;
 }
@@ -236,7 +243,13 @@ IntersectionType::Type PlaneSphere(const Vector4& plane,
 {
   ++Application::mStatistics.mPlaneSphereTests;
 
-  return PointPlane(sphereCenter, plane, sphereRadius);
+  IntersectionType::Type type = PointPlane(sphereCenter, plane, sphereRadius);
+
+  if (type == IntersectionType::Coplanar) {
+    return IntersectionType::Overlaps;
+  }
+
+  return type;
 }
 
 IntersectionType::Type PlaneAabb(const Vector4& plane,
@@ -248,8 +261,8 @@ IntersectionType::Type PlaneAabb(const Vector4& plane,
 
   float r = 0;
   for (int i = 0; i < 3; ++i) {
-    float e = (aabbMax[i] - aabbMin[i]) * 0.f;
-    r += e * plane[i];
+    float e = (aabbMax[i] - aabbMin[i]) * 0.5f;
+    r += e * Math::Abs(plane[i]);
     c[i] += e;
   }
 
@@ -275,9 +288,9 @@ IntersectionType::Type FrustumTriangle(const Vector4 planes[6],
   }
 
   if (intersection != IntersectionType::Inside) {
-    return IntersectionType::Coplanar;
+    return IntersectionType::Overlaps;
   }
-  return IntersectionType::Overlaps;
+  return IntersectionType::Inside;
 }
 
 IntersectionType::Type FrustumSphere(const Vector4 planes[6],
@@ -299,9 +312,9 @@ IntersectionType::Type FrustumSphere(const Vector4 planes[6],
   }
 
   if (intersection != IntersectionType::Inside) {
-    return IntersectionType::Coplanar;
+    return IntersectionType::Overlaps;
   }
-  return IntersectionType::Overlaps;
+  return IntersectionType::Inside;
 }
 
 IntersectionType::Type FrustumAabb(const Vector4 planes[6],
@@ -323,9 +336,9 @@ IntersectionType::Type FrustumAabb(const Vector4 planes[6],
   }
 
   if (intersection != IntersectionType::Inside) {
-    return IntersectionType::Coplanar;
+    return IntersectionType::Overlaps;
   }
-  return IntersectionType::Overlaps;
+  return IntersectionType::Inside;
 }
 
 bool SphereSphere(const Vector3& sphereCenter0, float sphereRadius0,
