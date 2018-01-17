@@ -119,9 +119,18 @@ bool RayTriangle(const Vector3& rayStart, const Vector3& rayDir,
                  float& t, float triExpansionEpsilon, float parallelCheckEpsilon)
 {
   ++Application::mStatistics.mRayTriangleTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+
+  Plane trianglePlane;
+  trianglePlane.Set(triP0, triP1, triP2);
+
+  if (!RayPlane(rayStart, rayDir, trianglePlane.mData, t, parallelCheckEpsilon)) {
+    return false;
+  }
+
+  Vector3 point = rayStart + rayDir * t;
+
+  float u, v, w;
+  return BarycentricCoordinates(point, triP0, triP1, triP2, u, v, w, parallelCheckEpsilon);
 }
 
 bool RaySphere(const Vector3& rayStart, const Vector3& rayDir,
