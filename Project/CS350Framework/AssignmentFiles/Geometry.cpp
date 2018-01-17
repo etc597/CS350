@@ -66,9 +66,15 @@ bool BarycentricCoordinates(const Vector3& point, const Vector3& a, const Vector
 
 IntersectionType::Type PointPlane(const Vector3& point, const Vector4& plane, float epsilon)
 {
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return IntersectionType::NotImplemented;
+  Vector4 p = Vector4(point.x, point.y, point.z, -1);
+  float w = Math::Dot(plane, p);
+  if (w < epsilon) {
+    return IntersectionType::Inside;
+  }
+  else if (w > epsilon) {
+    return IntersectionType::Outside;
+  }
+  return IntersectionType::Coplanar;
 }
 
 bool PointSphere(const Vector3& point, const Vector3& sphereCenter, float sphereRadius)
