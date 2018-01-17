@@ -283,7 +283,13 @@ bool AabbAabb(const Vector3& aabbMin0, const Vector3& aabbMax0,
               const Vector3& aabbMin1, const Vector3& aabbMax1)
 {
   ++Application::mStatistics.mAabbAabbTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+
+  for (int i = 0; i < 3; ++i) {
+    if (aabbMin0[i] > aabbMax1[i]
+      || aabbMin1[i] > aabbMax0[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
