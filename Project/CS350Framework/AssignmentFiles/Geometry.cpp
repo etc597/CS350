@@ -6,21 +6,62 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "Precompiled.hpp"
 
+bool outRange(float val, float minRange, float maxRange)
+{
+  return val < minRange || val > maxRange;
+}
 
 bool BarycentricCoordinates(const Vector3& point, const Vector3& a, const Vector3& b,
                             float& u, float& v, float expansionEpsilon)
 {
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  Vector3 BA = a - b;
+  Vector3 BP = point - b;
+
+  u = Math::Dot(BA, BP) / Math::Dot(BA, BA);
+  v = 1 - u;
+
+  float minRange = -expansionEpsilon;
+  float maxRange = 1 + expansionEpsilon;
+
+  if (outRange(u, minRange, maxRange)
+    || outRange(v, minRange, maxRange)) {
+    return false;
+  }
+
+  return true;
 }
 
 bool BarycentricCoordinates(const Vector3& point, const Vector3& a, const Vector3& b, const Vector3& c,
                             float& u, float& v, float& w, float expansionEpsilon)
 {
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  Vector3 v0 = point - c;
+  Vector3 v1 = a - c;
+  Vector3 v2 = b - c;
+
+  float a_val = Math::Dot(v1, v1);
+  float b_val = Math::Dot(v2, v1); // v2 * v1 == v1 * v2. i.e. b_val == d_val
+  float c_val = Math::Dot(v2, v2);
+  float e_val = Math::Dot(v0, v1);
+  float f_val = Math::Dot(v0, v2);
+
+  float denom = a_val * b_val - b_val * c_val;
+  float u_num = e_val * b_val - b_val * f_val;
+  float v_num = a_val * f_val - e_val * c_val;
+
+  u = u_num / denom;
+  v = v_num / denom;
+  w = 1 - u - v;
+
+  float minRange = -expansionEpsilon;
+  float maxRange = 1 + expansionEpsilon;
+
+  if (outRange(u, minRange, maxRange)
+    || outRange(v, minRange, maxRange)
+    || outRange(w, minRange, maxRange)) {
+    return false;
+  }
+
+  return true;
 }
 
 IntersectionType::Type PointPlane(const Vector3& point, const Vector4& plane, float epsilon)
