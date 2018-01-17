@@ -73,9 +73,8 @@ IntersectionType::Type PointPlane(const Vector3& point, const Vector4& plane, fl
 
 bool PointSphere(const Vector3& point, const Vector3& sphereCenter, float sphereRadius)
 {
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  Vector3 d = sphereCenter - point;
+  return Math::Dot(d, d) - sphereRadius * sphereRadius <= 0;
 }
 
 bool PointAabb(const Vector3& point, const Vector3& aabbMin, const Vector3& aabbMax)
