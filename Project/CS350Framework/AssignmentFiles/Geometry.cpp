@@ -129,9 +129,43 @@ bool RaySphere(const Vector3& rayStart, const Vector3& rayDir,
                float& t)
 {
   ++Application::mStatistics.mRaySphereTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+
+  Vector3 m = sphereCenter - rayStart;
+  float a = Math::Dot(rayDir, rayDir);
+  float b = Math::Dot(m, -rayDir);
+  float c = Math::Dot(m, m);
+
+  float discr = b * b - 4 * a * c; // discriminant
+
+  if (discr < 0) {
+    return false;
+  }
+
+  if (discr == 0) {
+    t = -b / (2 * a);
+    if (t < 0) {
+      return false;
+    }
+
+    return true;
+  }
+  
+  float t1 = (-b + Math::Sqrt(discr)) / (2 * a);
+  float t2 = (-b - Math::Sqrt(discr)) / (2 * a);
+
+  if (t1 < 0 && t2 < 0) {
+    return false;
+  }
+
+  // if product is negative, one is + and other is -
+  if (t1 * t2 <= 0) {
+    t = 0;
+    return true;
+  }
+
+  t = Math::Min(t1, t2);
+
+  return true;
 }
 
 bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
