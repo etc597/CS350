@@ -97,9 +97,21 @@ bool RayPlane(const Vector3& rayStart, const Vector3& rayDir,
               const Vector4& plane, float& t, float parallelCheckEpsilon)
 {
   ++Application::mStatistics.mRayPlaneTests;
-  /******Student:Assignment1******/
-  Warn("Assignment1: Required function un-implemented");
-  return false;
+  
+  Vector3 normal = Vector3(plane.x, plane.y, plane.z);
+  float denom = Math::Dot(normal, rayDir);
+
+  if (denom == 0) {
+    return false;
+  }
+
+  float num = plane.w - Math::Dot(normal, rayStart);
+  t = num / denom;
+  if (t < 0) {
+    return false;
+  }
+
+  return true;
 }
 
 bool RayTriangle(const Vector3& rayStart, const Vector3& rayDir,
