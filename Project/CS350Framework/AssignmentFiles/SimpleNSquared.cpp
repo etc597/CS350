@@ -110,26 +110,40 @@ void NSquaredSpatialPartition::FilloutData(std::vector<SpatialPartitionQueryData
 
 //-----------------------------------------------------------------------------BoundingSphereSpatialPartition
 BoundingSphereSpatialPartition::BoundingSphereSpatialPartition()
+  : mData()
+  , mCurrentId(0)
 {
   mType = SpatialPartitionTypes::NSquaredSphere;
 }
 
 void BoundingSphereSpatialPartition::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  if (mFreeIds.empty()) {
+    key.mUIntKey = mCurrentId;
+    ++mCurrentId;
+  }
+  else {
+    key.mUIntKey = mFreeIds.top();
+    mFreeIds.pop();
+  }
+  mData.emplace(key.mUIntKey, Item(data));
 }
 
 void BoundingSphereSpatialPartition::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  auto it = mData.find(key.mUIntKey);
+  if (it != mData.end()) {
+    it->second = Item(data);
+  }
 }
 
 void BoundingSphereSpatialPartition::RemoveData(SpatialPartitionKey& key)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  auto it = mData.find(key.mUIntKey);
+  if (it != mData.end()) {
+    mData.erase(it);
+  }
+  mFreeIds.push(key.mUIntKey);
 }
 
 void BoundingSphereSpatialPartition::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)

@@ -7,6 +7,8 @@
 #pragma once
 
 #include "SpatialPartition.hpp"
+#include <unordered_map>
+#include <stack>
 
 //-----------------------------------------------------------------------------BoundingSphereSpatialPartition
 // A very bad, brute force spatial partition that is used for assignment 1 (before you get to implement something better).
@@ -61,5 +63,19 @@ public:
 
   void FilloutData(std::vector<SpatialPartitionQueryData>& results) const override;
 
+  struct Item
+  {
+    Item(const SpatialPartitionData& data) 
+    : mClientData(data.mClientData)
+    , mBoundingSphere(data.mBoundingSphere) {
+
+    }
+    void* mClientData;
+    Sphere mBoundingSphere;
+  };
+
   // Add your implementation here
+  std::unordered_map<unsigned int, Item> mData;
+  unsigned int mCurrentId;
+  std::stack<unsigned int> mFreeIds;
 };
