@@ -100,7 +100,7 @@ void Sphere::ComputeCentroid(const std::vector<Vector3>& points)
   for (auto& pt : points) {
     mCenter += pt;
   }
-  mCenter /= points.size();
+  mCenter /= (float)points.size();
 
   mRadius = 0.0f;
   for (auto& pt : points) {
