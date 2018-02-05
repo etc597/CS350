@@ -240,26 +240,27 @@ void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
     }
   }
 
-  Vector3 maxPoint = Vector3(Math::NegativeMin());
-  Vector3 minPoint = Vector3(Math::PositiveMax());
 
+  Vector3 min(Math::PositiveMax());
+  Vector3 max(Math::NegativeMin());
+  float minDot = Math::PositiveMax();
+  float maxDot = Math::NegativeMin();
   for (auto& pt : points) {
-    Vector3 pt2 = Math::Transform(eigenVectors, pt);
+    float proj = Math::Dot(pt, eigenVectors[largestAxis]);
 
-    if (pt2[largestAxis] < minPoint[largestAxis]) {
-      minPoint = pt2;
+    if (proj < minDot) {
+      minDot = proj;
+      min = pt;
     }
-    if (pt2[largestAxis] > maxPoint[largestAxis]) {
-      maxPoint = pt2;
+
+    if (proj > maxDot) {
+      maxDot = proj;
+      max = pt;
     }
   }
 
-  Matrix3 inverse = Math::Inverted(eigenVectors);
-  maxPoint = Math::Transform(inverse, maxPoint);
-  minPoint = Math::Transform(inverse, minPoint);
-
-  mCenter = (maxPoint + minPoint) * 0.5f;
-  mRadius = Math::Length(maxPoint - mCenter);
+  mCenter = 0.5f * (max + min);
+  mRadius = Math::Length(max - mCenter);
 
   PointExpansion(points, mCenter, mRadius);
 }
