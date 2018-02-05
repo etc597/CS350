@@ -121,7 +121,7 @@ Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
 void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValues, Matrix3& eigenVectors, int maxIterations)
 {
   Matrix3 diagonal = covariance;
-  for (unsigned i = 0; i < maxIterations; ++i) {
+  for (unsigned i = 0; i < (unsigned)maxIterations; ++i) {
     Matrix3 J = ComputeJacobiRotation(diagonal);
     eigenVectors = eigenVectors * J;
     diagonal = Math::Inverted(J) * diagonal * J;
@@ -373,11 +373,24 @@ bool Aabb::Compare(const Aabb& rhs, float epsilon) const
 
 void Aabb::Transform(const Matrix4& transform)
 {
-  /******Student:Assignment2******/
-  // Compute aabb of the this aabb after it is transformed.
-  // You should use the optimize method discussed in class (not transforming all 8 points).
-  Warn("Assignment2: Required function un-implemented");
+  Vector3 c = 0.5f * (mMax + mMin);
+  Vector3 r = 0.5f * (mMax - mMin);
 
+  Vector4 center = Vector4(c[0], c[1], c[2], 1);
+  Vector4 radius = Vector4(r[0], r[1], r[2], 0);
+
+  center = Math::Transform(transform, center);
+  Matrix4 absTransform = transform;
+  for (unsigned i = 0; i < 4; ++i) {
+    absTransform[i] = Math::Abs(absTransform[i]);
+  }
+  radius = Math::Transform(absTransform, radius);
+
+  c = Vector3(center[0], center[1], center[2]);
+  r = Vector3(radius[0], radius[1], radius[2]);
+
+  mMax = c + r;
+  mMin = c - r;
 }
 
 Vector3 Aabb::GetMin() const
