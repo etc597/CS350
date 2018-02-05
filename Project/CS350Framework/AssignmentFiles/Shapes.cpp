@@ -208,18 +208,14 @@ Aabb Aabb::BuildFromMinMax(const Vector3& min, const Vector3& max)
 
 float Aabb::GetVolume() const
 {
-  /******Student:Assignment2******/
-  // Return the aabb's volume
-  Warn("Assignment2: Required function un-implemented");
-  return 0;
+  Vector3 dim = mMax - mMin;
+  return dim[0] * dim[1] * dim[2];
 }
 
 float Aabb::GetSurfaceArea() const
 {
-  /******Student:Assignment2******/
-  // Return the aabb's surface area
-  Warn("Assignment2: Required function un-implemented");
-  return 0;
+  Vector3 dim = mMax - mMin;
+  return 2 * dim[0] * dim[1] + 2 * dim[0] * dim[2] + 2 * dim[1] * dim[2];
 }
 
 void Aabb::Compute(const std::vector<Vector3>& points)
