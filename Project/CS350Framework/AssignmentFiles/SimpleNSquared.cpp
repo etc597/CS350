@@ -158,14 +158,24 @@ void BoundingSphereSpatialPartition::DebugDraw(int level, const Math::Matrix4& t
 
 void BoundingSphereSpatialPartition::CastRay(const Ray& ray, CastResults& results)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  for (auto& i : mData) {
+    Sphere& s = i.second.mBoundingSphere;
+    float t;
+    if (RaySphere(ray.mStart, ray.mDirection, s.GetCenter(), s.GetRadius(), t)) {
+      results.AddResult(CastResult(i.second.mClientData, t));
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::CastFrustum(const Frustum& frustum, CastResults& results)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  for (auto& i : mData) {
+    Sphere& s = i.second.mBoundingSphere;
+    size_t lastAxis = 0;
+    if (FrustumSphere(frustum.GetPlanes(), s.GetCenter(), s.GetRadius(), lastAxis)) {
+      results.AddResult(CastResult(i.second.mClientData));
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::SelfQuery(QueryResults& results)
