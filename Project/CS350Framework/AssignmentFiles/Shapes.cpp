@@ -137,7 +137,7 @@ void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValue
       }
     }
 
-    if (offSum < 0.001f) {
+    if (offSum < 0.0001f) {
       break;
     }
   }
@@ -231,22 +231,24 @@ void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
   ComputeEigenValuesAndVectors(ComputeCovarianceMatrix(points), eigenValues, eigenVectors, maxIterations);
 
   int largestAxis = -1;
-  float largestLength = Math::NegativeMin();
+  float largestLength = 0.0f;
   for (unsigned i = 0; i < 3; ++i) {
-    float length = Math::Length(eigenVectors[i]);
-    if (length > largestLength) {
-      largestLength = length;
+    if (Math::Abs(eigenValues[i]) > Math::Abs(largestLength)) {
+      largestLength = eigenValues[i];
       largestAxis = i;
     }
   }
-
+  Vector3 e;
+  for (unsigned i = 0; i < 3; ++i) {
+    e[i] = eigenVectors[i][largestAxis];
+  }
 
   Vector3 min(Math::PositiveMax());
   Vector3 max(Math::NegativeMin());
   float minDot = Math::PositiveMax();
   float maxDot = Math::NegativeMin();
   for (auto& pt : points) {
-    float proj = Math::Dot(pt, eigenVectors[largestAxis]);
+    float proj = Math::Dot(pt, e);
 
     if (proj < minDot) {
       minDot = proj;
