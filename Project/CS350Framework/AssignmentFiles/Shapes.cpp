@@ -142,7 +142,15 @@ void Sphere::ComputeRitter(const std::vector<Vector3>& points)
   mCenter = (maxAxes[largestSpreadAxis] + minAxes[largestSpreadAxis]) / 2;
   mRadius = largestLength / 2;
 
-  // TODO: iteratively expand the sphere to contain any missing points
+  for (auto& pt : points) {
+    Vector3 pmc = pt - mCenter;
+    float length = Math::Length(pmc);
+    if (length > mRadius) {
+      float r = 0.5f * (length + mRadius);
+      mCenter = mCenter - pmc / length * (r - mRadius);
+      mRadius = r;
+    }
+  }
 }
 
 void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
