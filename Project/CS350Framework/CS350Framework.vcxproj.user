@@ -8,6 +8,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>1 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>2 0</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
