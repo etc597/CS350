@@ -232,10 +232,12 @@ void Aabb::Compute(const std::vector<Vector3>& points)
 
 bool Aabb::Contains(const Aabb& aabb) const
 {
-  /******Student:Assignment2******/
-  // Return if aabb is completely contained in this
-  Warn("Assignment2: Required function un-implemented");
-  return false;
+  for (unsigned i = 0; i < 3; ++i) {
+    if (aabb.GetMax()[i] > mMax[i] || aabb.GetMin()[i] < mMin[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void Aabb::Expand(const Vector3& point)
