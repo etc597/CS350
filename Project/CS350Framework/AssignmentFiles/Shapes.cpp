@@ -62,7 +62,7 @@ Matrix3 ComputeCovarianceMatrix(const std::vector<Vector3>& points)
   }
   u /= (float)points.size();
 
-  Matrix3 c(0);
+  Matrix3 c(0,0,0,0,0,0,0,0,0);
   for (auto& pt : points) {
     for (unsigned i = 0; i < 3; ++i) {
       for (unsigned j = 0; j < 3; ++j) {
@@ -76,11 +76,33 @@ Matrix3 ComputeCovarianceMatrix(const std::vector<Vector3>& points)
 
 Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
 {
-  /******Student:Assignment2******/
-  // Compute the jacobi rotation matrix that will turn the largest (magnitude) off-diagonal element of the input
-  // matrix into zero. Note: the input matrix should always be (near) symmetric.
-  Warn("Assignment2: Required function un-implemented");
-  return Matrix3::cIdentity;
+  float apq = Math::NegativeMin();
+  int p = -1;
+  int q = -1;
+  for (unsigned i = 0; i < 3; ++i) {
+    for (unsigned j = 0; j < 3; ++j) {
+      if (i == j) {
+        continue;
+      }
+
+      if (matrix[i][j] > apq) {
+        apq = matrix[i][j];
+        p = i;
+        q = j;
+      }
+    }
+  }
+
+  float b = (matrix[q][q] - matrix[p][p]) / 2 * apq;
+  float t = Math::GetSign(b) / (Math::Abs(b) + Math::Sqrt(b * b + 1));
+  float c = Math::Sqrt(1 / (t * t + 1));
+  float s = t * c;
+
+  Matrix3 J = Matrix3::cIdentity;
+  J[p][p] = J[q][q] = c;
+  J[p][q] = s;
+  J[q][p] = -s;
+  return J;
 }
 
 void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValues, Matrix3& eigenVectors, int maxIterations)
