@@ -185,9 +185,8 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
              const Vector3& aabbMin, const Vector3& aabbMax, float& t, float parallelCheckEpsilon)
 {
   ++Application::mStatistics.mRayAabbTests;
-  float tmin = 0;
-  float tmax = 0;
-  bool first = true;
+  float tmin = Math::NegativeMin();
+  float tmax = Math::PositiveMax();
 
   for (int i = 0; i < 3; ++i) {
     if (rayDir[i] == 0) {
@@ -203,10 +202,8 @@ bool RayAabb(const Vector3& rayStart, const Vector3& rayDir,
       Math::Swap(min, max);
     }
 
-    first ? tmin = min : tmin = Math::Max(min, tmin);
-    first ? tmax = max : tmax = Math::Min(max, tmax);
-
-    first = false;
+    tmin = Math::Max(min, tmin);
+    tmax = Math::Min(max, tmax);
   }
 
   if (tmin > tmax) {
@@ -328,6 +325,7 @@ IntersectionType::Type FrustumAabb(const Vector4 planes[6],
     size_t current = (lastAxis + i) % 6;
     IntersectionType::Type type = PlaneAabb(planes[current], aabbMin, aabbMax);
     if (type == IntersectionType::Outside) {
+      lastAxis = current;
       return type;
     }
     else if (type != IntersectionType::Inside) {
