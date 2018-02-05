@@ -250,11 +250,13 @@ void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
   for (auto& pt : points) {
     float proj = Math::Dot(pt, e);
 
+    // min point in the direction of e
     if (proj < minDot) {
       minDot = proj;
       min = pt;
     }
 
+    // max point in the direction of e
     if (proj > maxDot) {
       maxDot = proj;
       max = pt;
