@@ -42,7 +42,6 @@ public:
   int mCurrentId;
 };
 
-/******Student:Assignment2******/
 // Implement the n-squared sphere spatial partition
 //-----------------------------------------------------------------------------BoundingSphereSpatialPartition
 class BoundingSphereSpatialPartition : public SpatialPartition
