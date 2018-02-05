@@ -93,10 +93,19 @@ Sphere::Sphere(const Vector3& center, float radius)
 
 void Sphere::ComputeCentroid(const std::vector<Vector3>& points)
 {
-  /******Student:Assignment2******/
-  // The centroid method is roughly describe as: find the centroid (not mean) of all
-  // points and then find the furthest away point from the centroid.
-  Warn("Assignment2: Required function un-implemented");
+  if (points.empty()) {
+    return;
+  }
+  mCenter = Vector3();
+  for (auto& pt : points) {
+    mCenter += pt;
+  }
+  mCenter /= points.size();
+
+  mRadius = 0.0f;
+  for (auto& pt : points) {
+    mRadius = Math::Max(mRadius, Math::Length(pt - mCenter));
+  }
 }
 
 void Sphere::ComputeRitter(const std::vector<Vector3>& points)
