@@ -166,8 +166,15 @@ void BoundingSphereSpatialPartition::CastFrustum(const Frustum& frustum, CastRes
 
 void BoundingSphereSpatialPartition::SelfQuery(QueryResults& results)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  for (auto& i : mData) {
+    for (auto& j : mData) {
+      Sphere& s1 = i.second.mBoundingSphere;
+      Sphere& s2 = j.second.mBoundingSphere;
+      if (SphereSphere(s1.GetCenter(), s1.GetRadius(), s2.GetCenter(), s2.GetRadius())) {
+        results.AddResult(QueryResult(i.second.mClientData, j.second.mClientData));
+      }
+    }
+  }
 }
 
 void BoundingSphereSpatialPartition::FilloutData(std::vector<SpatialPartitionQueryData>& results) const
