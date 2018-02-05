@@ -89,7 +89,7 @@ Matrix3 ComputeCovarianceMatrix(const std::vector<Vector3>& points)
 
 Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
 {
-  float apq = Math::NegativeMin();
+  float apq = 0.0f;
   int p = -1;
   int q = -1;
   for (unsigned i = 0; i < 3; ++i) {
@@ -98,7 +98,7 @@ Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
         continue;
       }
 
-      if (matrix[i][j] > apq) {
+      if (Math::Abs(matrix[i][j]) > Math::Abs(apq)) {
         apq = matrix[i][j];
         p = i;
         q = j;
@@ -106,7 +106,7 @@ Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
     }
   }
 
-  float b = (matrix[q][q] - matrix[p][p]) / 2 * apq;
+  float b = (matrix[q][q] - matrix[p][p]) / (2 * apq);
   float t = Math::GetSign(b) / (Math::Abs(b) + Math::Sqrt(b * b + 1));
   float c = Math::Sqrt(1 / (t * t + 1));
   float s = t * c;
@@ -125,18 +125,19 @@ void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValue
     Matrix3 J = ComputeJacobiRotation(diagonal);
     eigenVectors = eigenVectors * J;
     diagonal = Math::Inverted(J) * diagonal * J;
-    float offSome = 0.0f;
+
+    float offSum = 0.0f;
     for (unsigned j = 0; j < 3; ++j) {
       for (unsigned k = 0; k < 3; ++k) {
         if (j == k) {
           continue;
         }
 
-        offSome += diagonal[i][j];
+        offSum += diagonal[j][k] * diagonal[j][k];
       }
     }
 
-    if (Math::Abs(offSome) < 0.001f) {
+    if (offSum < 0.001f) {
       break;
     }
   }
