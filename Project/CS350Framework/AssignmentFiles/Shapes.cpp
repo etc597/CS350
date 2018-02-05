@@ -110,12 +110,39 @@ void Sphere::ComputeCentroid(const std::vector<Vector3>& points)
 
 void Sphere::ComputeRitter(const std::vector<Vector3>& points)
 {
-  /******Student:Assignment2******/
-  // The ritter method:
-  // Find the largest spread on each axis.
-  // Find which axis' pair of points are the furthest (euclidean distance) apart.
-  // Choose the center of this line as the sphere center. Now incrementally expand the sphere.
-  Warn("Assignment2: Required function un-implemented");
+  if (points.empty()) {
+    return;
+  }
+
+  Vector3 minAxes[3] = { Vector3(Math::PositiveMax()) };
+  Vector3 maxAxes[3] = { Vector3(Math::NegativeMin()) };
+
+  for (auto& pt : points) {
+    // check if the current point is the max or min of any of the three axes
+    for (unsigned i = 0; i < 3; ++i) {
+      if (minAxes[i][i] != Math::Min(minAxes[i][i], pt[i])) {
+        minAxes[i] = pt;
+      }
+      if (maxAxes[i][i] != Math::Max(maxAxes[i][i], pt[i])) {
+        maxAxes[i] = pt;
+      }
+    }
+  }
+
+  int largestSpreadAxis = -1;
+  float largestLength = 0;
+  for (unsigned i = 0; i < 3; ++i) {
+    float length = Math::Length(maxAxes[i] - minAxes[i]);
+    if (length > largestLength) {
+      largestLength = length;
+      largestSpreadAxis = i;
+    }
+  }
+
+  mCenter = (maxAxes[largestSpreadAxis] + minAxes[largestSpreadAxis]) / 2;
+  mRadius = largestLength / 2;
+
+  // TODO: iteratively expand the sphere to contain any missing points
 }
 
 void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
