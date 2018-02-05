@@ -180,12 +180,13 @@ void BoundingSphereSpatialPartition::CastFrustum(const Frustum& frustum, CastRes
 
 void BoundingSphereSpatialPartition::SelfQuery(QueryResults& results)
 {
-  for (auto& i : mData) {
-    for (auto& j : mData) {
-      Sphere& s1 = i.second.mBoundingSphere;
-      Sphere& s2 = j.second.mBoundingSphere;
+  for (auto it = mData.begin(); it != mData.end(); ++it) {
+    auto jt = it;
+    for (++jt; jt != mData.end(); ++jt) {
+      Sphere& s1 = it->second.mBoundingSphere;
+      Sphere& s2 = jt->second.mBoundingSphere;
       if (SphereSphere(s1.GetCenter(), s1.GetRadius(), s2.GetCenter(), s2.GetRadius())) {
-        results.AddResult(QueryResult(i.second.mClientData, j.second.mClientData));
+        results.AddResult(QueryResult(it->second.mClientData, jt->second.mClientData));
       }
     }
   }
