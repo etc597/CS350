@@ -172,7 +172,7 @@ void BoundingSphereSpatialPartition::CastFrustum(const Frustum& frustum, CastRes
   for (auto& i : mData) {
     Sphere& s = i.second.mBoundingSphere;
     size_t lastAxis = 0;
-    if (FrustumSphere(frustum.GetPlanes(), s.GetCenter(), s.GetRadius(), lastAxis)) {
+    if (FrustumSphere(frustum.GetPlanes(), s.GetCenter(), s.GetRadius(), lastAxis) != IntersectionType::Outside) {
       results.AddResult(CastResult(i.second.mClientData));
     }
   }
