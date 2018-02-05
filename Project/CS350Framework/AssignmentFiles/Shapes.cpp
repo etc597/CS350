@@ -107,9 +107,30 @@ Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
 
 void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValues, Matrix3& eigenVectors, int maxIterations)
 {
-  /******Student:Assignment2******/
-  // Iteratively rotate off the largest off-diagonal elements until the resultant matrix is diagonal or maxIterations.
-  Warn("Assignment2: Required function un-implemented");
+  Matrix3 diagonal = covariance;
+  for (unsigned i = 0; i < maxIterations; ++i) {
+    Matrix3 J = ComputeJacobiRotation(diagonal);
+    diagonal = Math::Inverted(J) * diagonal * J;
+    float offSome = 0.0f;
+    for (unsigned j = 0; j < 3; ++j) {
+      for (unsigned k = 0; k < 3; ++k) {
+        if (j == k) {
+          continue;
+        }
+
+        offSome += diagonal[i][j];
+      }
+    }
+
+    if (Math::Abs(offSome) < 0.001f) {
+      break;
+    }
+  }
+
+  for (unsigned i = 0; i < 3; ++i) {
+    eigenValues[i] = diagonal[i][i];
+  }
+  eigenVectors = diagonal;
 }
 
 
