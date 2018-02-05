@@ -196,6 +196,7 @@ void BoundingSphereSpatialPartition::FilloutData(std::vector<SpatialPartitionQue
   for (auto& i : mData) {
     SpatialPartitionQueryData data;
     data.mClientData = i.second.mClientData;
+    data.mBoundingSphere = i.second.mBoundingSphere;
     results.push_back(data);
   }
 }
