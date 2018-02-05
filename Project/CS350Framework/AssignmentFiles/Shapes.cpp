@@ -6,6 +6,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "Precompiled.hpp"
 
+void PointExpansion(const std::vector<Vector3>& points, Vector3& center, float& radius)
+{
+  for (auto& pt : points) {
+    Vector3 pmc = pt - center;
+    float length = Math::Length(pmc);
+    if (length > radius) {
+      float r = 0.5f * (length + radius);
+      center = center - pmc / length * (r - radius);
+      radius = r;
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------LineSegment
 LineSegment::LineSegment()
 {
@@ -110,6 +123,7 @@ void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValue
   Matrix3 diagonal = covariance;
   for (unsigned i = 0; i < maxIterations; ++i) {
     Matrix3 J = ComputeJacobiRotation(diagonal);
+    eigenVectors = eigenVectors * J;
     diagonal = Math::Inverted(J) * diagonal * J;
     float offSome = 0.0f;
     for (unsigned j = 0; j < 3; ++j) {
@@ -130,7 +144,6 @@ void ComputeEigenValuesAndVectors(const Matrix3& covariance, Vector3& eigenValue
   for (unsigned i = 0; i < 3; ++i) {
     eigenValues[i] = diagonal[i][i];
   }
-  eigenVectors = diagonal;
 }
 
 
@@ -195,18 +208,10 @@ void Sphere::ComputeRitter(const std::vector<Vector3>& points)
     }
   }
 
-  mCenter = (maxAxes[largestSpreadAxis] + minAxes[largestSpreadAxis]) / 2;
-  mRadius = largestLength / 2;
+  mCenter = (maxAxes[largestSpreadAxis] + minAxes[largestSpreadAxis]) * 0.5f;
+  mRadius = largestLength * 0.5f;
 
-  for (auto& pt : points) {
-    Vector3 pmc = pt - mCenter;
-    float length = Math::Length(pmc);
-    if (length > mRadius) {
-      float r = 0.5f * (length + mRadius);
-      mCenter = mCenter - pmc / length * (r - mRadius);
-      mRadius = r;
-    }
-  }
+  PointExpansion(points, mCenter, mRadius);
 }
 
 void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
@@ -214,8 +219,42 @@ void Sphere::ComputePCA(const std::vector<Vector3>& points, int maxIterations)
   // The PCA method:
   // Compute the eigen values and vectors. Take the largest eigen vector as the axis of largest spread.
   // Compute the sphere center as the center of this axis then expand by all points.
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  Vector3 eigenValues;
+  Matrix3 eigenVectors;
+  ComputeEigenValuesAndVectors(ComputeCovarianceMatrix(points), eigenValues, eigenVectors, maxIterations);
+
+  int largestAxis = -1;
+  float largestLength = Math::NegativeMin();
+  for (unsigned i = 0; i < 3; ++i) {
+    float length = Math::Length(eigenVectors[i]);
+    if (length > largestLength) {
+      largestLength = length;
+      largestAxis = i;
+    }
+  }
+
+  Vector3 maxPoint = Vector3(Math::NegativeMin());
+  Vector3 minPoint = Vector3(Math::PositiveMax());
+
+  for (auto& pt : points) {
+    Vector3 pt2 = Math::Transform(eigenVectors, pt);
+
+    if (pt2[largestAxis] < minPoint[largestAxis]) {
+      minPoint = pt2;
+    }
+    if (pt2[largestAxis] > maxPoint[largestAxis]) {
+      maxPoint = pt2;
+    }
+  }
+
+  Matrix3 inverse = Math::Inverted(eigenVectors);
+  maxPoint = Math::Transform(inverse, maxPoint);
+  minPoint = Math::Transform(inverse, minPoint);
+
+  mCenter = (maxPoint + minPoint) * 0.5f;
+  mRadius = Math::Length(maxPoint - mCenter);
+
+  PointExpansion(points, mCenter, mRadius);
 }
 
 bool Sphere::ContainsPoint(const Vector3& point)
