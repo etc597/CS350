@@ -165,11 +165,17 @@ void Sphere::ComputeCentroid(const std::vector<Vector3>& points)
   if (points.empty()) {
     return;
   }
-  mCenter = Vector3();
+
+  Vector3 min(Math::PositiveMax());
+  Vector3 max(Math::NegativeMin());
+
   for (auto& pt : points) {
-    mCenter += pt;
+    for (unsigned i = 0; i < 3; ++i) {
+      min[i] = Math::Min(pt[i], min[i]);
+      max[i] = Math::Max(pt[i], max[i]);
+    }
   }
-  mCenter /= (float)points.size();
+  mCenter = 0.5f * (max + min);
 
   mRadius = 0.0f;
   for (auto& pt : points) {
