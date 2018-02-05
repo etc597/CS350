@@ -148,8 +148,12 @@ void BoundingSphereSpatialPartition::RemoveData(SpatialPartitionKey& key)
 
 void BoundingSphereSpatialPartition::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  for (auto& i : mData) {
+    auto& debug = i.second.mBoundingSphere.DebugDraw();
+    debug.SetTransform(transform);
+    debug.Color(color);
+    debug.SetMaskBit(bitMask);
+  }
 }
 
 void BoundingSphereSpatialPartition::CastRay(const Ray& ray, CastResults& results)
@@ -179,6 +183,9 @@ void BoundingSphereSpatialPartition::SelfQuery(QueryResults& results)
 
 void BoundingSphereSpatialPartition::FilloutData(std::vector<SpatialPartitionQueryData>& results) const
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
+  for (auto& i : mData) {
+    SpatialPartitionQueryData data;
+    data.mClientData = i.second.mClientData;
+    results.push_back(data);
+  }
 }
