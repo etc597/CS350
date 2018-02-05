@@ -12,9 +12,9 @@ void PointExpansion(const std::vector<Vector3>& points, Vector3& center, float& 
     Vector3 pmc = pt - center;
     float length = Math::Length(pmc);
     if (length > radius) {
-      float r = 0.5f * (length + radius);
-      center = center - pmc / length * (r - radius);
-      radius = r;
+      Vector3 b = pmc / length * -radius + center;
+      center = 0.5f * (pt + b);
+      radius = Math::Length(pt - center);
     }
   }
 }
@@ -195,10 +195,10 @@ void Sphere::ComputeRitter(const std::vector<Vector3>& points)
   for (auto& pt : points) {
     // check if the current point is the max or min of any of the three axes
     for (unsigned i = 0; i < 3; ++i) {
-      if (minAxes[i][i] != Math::Min(minAxes[i][i], pt[i])) {
+      if (pt[i] < minAxes[i][i]) {
         minAxes[i] = pt;
       }
-      if (maxAxes[i][i] != Math::Max(maxAxes[i][i], pt[i])) {
+      if (pt[i] > maxAxes[i][i]) {
         maxAxes[i] = pt;
       }
     }
