@@ -56,9 +56,22 @@ DebugShape& Ray::DebugDraw(float t) const
 //-----------------------------------------------------------------------------PCA Helpers
 Matrix3 ComputeCovarianceMatrix(const std::vector<Vector3>& points)
 {
-  /******Student:Assignment2******/
-  Warn("Assignment2: Required function un-implemented");
-  return Matrix3::cIdentity;
+  Vector3 u;
+  for (auto& pt : points) {
+    u += pt;
+  }
+  u /= (float)points.size();
+
+  Matrix3 c(0);
+  for (auto& pt : points) {
+    for (unsigned i = 0; i < 3; ++i) {
+      for (unsigned j = 0; j < 3; ++j) {
+        c[i][j] += (pt[i] - u[i]) * (pt[j] - u[j]);
+      }
+    }
+  }
+  c /= (float)points.size();
+  return c;
 }
 
 Matrix3 ComputeJacobiRotation(const Matrix3& matrix)
