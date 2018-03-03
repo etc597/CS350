@@ -71,6 +71,7 @@ DynamicAabbTreeNode * DynamicAabbTreeNode::GetSibling() const
 const float DynamicAabbTree::mFatteningFactor = 1.1f;
 
 DynamicAabbTree::DynamicAabbTree()
+  : mRoot(nullptr)
 {
   mType = SpatialPartitionTypes::AabbTree;
 }
