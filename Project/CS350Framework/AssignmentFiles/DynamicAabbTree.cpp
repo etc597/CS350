@@ -364,7 +364,7 @@ void DynamicAabbTree::Balance(Node * node)
       left = pivot->mLeft;
       right = pivot->mRight;
 
-      Node* largeChild = left->mAabb.GetVolume() >= right->mAabb.GetVolume() ? left : right;
+      Node* largeChild = left->mHeight >= right->mHeight ? left : right;
       Node* smallChild = largeChild->GetSibling();
 
       Node* grandparent = node->mParent;
@@ -397,4 +397,14 @@ void DynamicAabbTree::Balance(Node * node)
 
 void DynamicAabbTree::SplitNodes(Node * nodeA, Node * nodeB, std::stack<std::pair<Node*, Node*>>& stack)
 {
+  if (nodeA->mAabb.GetVolume() > nodeB->mAabb.GetVolume())
+  {
+    stack.emplace(nodeB, nodeA->mLeft);
+    stack.emplace(nodeB, nodeA->mRight);
+  }
+  else
+  {
+    stack.emplace(nodeA, nodeB->mLeft);
+    stack.emplace(nodeA, nodeB->mRight);
+  }
 }
