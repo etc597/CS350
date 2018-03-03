@@ -182,7 +182,7 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
   delete parent;
 
   Reshape(grandparent);
-  Balance(sibling);
+  Balance(sibling); // TODO: see if we can just balance at the grandparent up
 }
 
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
@@ -284,8 +284,7 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
 
 void DynamicAabbTree::SelfQuery(QueryResults& results)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+
 }
 
 DynamicAabbTreeNode* DynamicAabbTree::GetRoot() const
@@ -319,7 +318,7 @@ void DynamicAabbTree::Balance(Node * node)
       left = pivot->mLeft;
       right = pivot->mRight;
 
-      Node* largeChild = left->mAabb.GetVolume() > right->mAabb.GetVolume() ? left : right;
+      Node* largeChild = left->mAabb.GetVolume() >= right->mAabb.GetVolume() ? left : right;
       Node* smallChild = largeChild->GetSibling();
 
       Node* grandparent = node->mParent;
