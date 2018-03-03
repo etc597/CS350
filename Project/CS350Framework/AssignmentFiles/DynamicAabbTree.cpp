@@ -9,46 +9,53 @@
 //--------------------------------------------------------------------DynamicAabbTreeNode
 DynamicAabbTreeNode* DynamicAabbTreeNode::GetParent() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return nullptr;
+  return mParent;
 }
 
 DynamicAabbTreeNode* DynamicAabbTreeNode::GetLeftChild() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return nullptr;
+  return mLeft;
 }
 
 DynamicAabbTreeNode* DynamicAabbTreeNode::GetRightChild() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return nullptr;
+  return mRight;
 }
 
 Aabb DynamicAabbTreeNode::GetAabb() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return Aabb();
+  return mAabb;
 }
 
 void* DynamicAabbTreeNode::GetClientData() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return nullptr;
+  return mClientData;
 }
 
 int DynamicAabbTreeNode::GetHeight() const
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return -1;
+  return mHeight;
 }
 
+bool DynamicAabbTreeNode::IsLeaf() const
+{
+  return mLeft == nullptr && mRight == nullptr;
+}
+
+
+bool DynamicAabbTreeNode::IsLeftChild() const
+{
+  if (mParent)
+  {
+    return this == mParent->mLeft;
+  }
+  return false;
+}
+
+bool DynamicAabbTreeNode::IsRightChild() const
+{
+  return !IsLeftChild();
+}
 
 //--------------------------------------------------------------------DynamicAabbTree
 const float DynamicAabbTree::mFatteningFactor = 1.1f;
@@ -60,18 +67,77 @@ DynamicAabbTree::DynamicAabbTree()
 
 DynamicAabbTree::~DynamicAabbTree()
 {
+  // depth first delete because it doesn't matter how we 'recurse'
+  // and stacks are generally faster than queues
+  std::stack<Node*> deletionStack;
+  deletionStack.push(mRoot);
+  while (!deletionStack.empty())
+  {
+    Node * toDel = deletionStack.top();
+    deletionStack.pop();
+    if (toDel->mLeft) deletionStack.push(toDel->mLeft);
+    if (toDel->mRight) deletionStack.push(toDel->mRight);
+    delete toDel;
+  }
+  
 }
 
 void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  Node* newNode = new Node;
+  newNode->mAabb = Aabb::BuildFromCenterAndHalfExtents(data.mAabb.GetCenter()
+                  , data.mAabb.GetHalfSize() + Vector3(mFatteningFactor));
+  newNode->mClientData = data.mClientData;
+
+  key.mVoidKey = newNode;
+
+  // no neeed to balane if this is the first node
+  if (mRoot == nullptr)
+  {
+    mRoot = newNode;
+    return;
+  }
+
+
+  Node* walker = mRoot;
+  while (!walker->IsLeaf())
+  {
+    Node* left = walker->mLeft;
+    Node* right = walker->mRight;
+
+    float saL = Aabb::Combine(left->mAabb, newNode->mAabb).GetSurfaceArea();
+    float saR = Aabb::Combine(right->mAabb, newNode->mAabb).GetSurfaceArea();
+
+    saL > saR ? walker = left : walker = right;
+  }
+
+  Node* splitNode = new Node;
+  splitNode->mLeft = walker;
+  splitNode->mRight = newNode;
+
+  if (walker->mParent)
+  {
+    walker->IsLeftChild() ? walker->mParent->mLeft = splitNode : walker->mParent->mRight = splitNode;
+  }
+
+  walker->mParent = splitNode;
+  newNode->mParent = splitNode;
+  
+  Reshape(splitNode);
+  Balance(splitNode);
 }
 
 void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  Node* node = (Node*)key.mVoidKey;
+  if (node->mAabb.Contains(data.mAabb))
+  {
+    node->mClientData = data.mClientData;
+    return;
+  }
+
+  RemoveData(key);
+  InsertData(key, data);
 }
 
 void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
@@ -111,5 +177,13 @@ DynamicAabbTreeNode* DynamicAabbTree::GetRoot() const
   /******Student:Assignment3******/
   Warn("Assignment3: Required function un-implemented");
   return nullptr;
+}
+
+void DynamicAabbTree::Reshape(Node * node)
+{
+}
+
+void DynamicAabbTree::Balance(Node * node)
+{
 }
 

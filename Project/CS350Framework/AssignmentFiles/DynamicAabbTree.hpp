@@ -21,7 +21,16 @@ public:
   int GetHeight() const;
 
   // Add you implementation here
+  bool IsLeaf() const;
+  bool IsLeftChild() const;
+  bool IsRightChild() const;
 
+  DynamicAabbTreeNode* mParent = nullptr;
+  DynamicAabbTreeNode* mLeft   = nullptr;
+  DynamicAabbTreeNode* mRight  = nullptr;
+  Aabb mAabb                   = Aabb();
+  void * mClientData           = nullptr;
+  int mHeight                  = 0;
 };
 
 //--------------------------------------------------------------------DynamicAabbTree
@@ -52,4 +61,12 @@ public:
   static const float mFatteningFactor;
 
   // Add your implementation here
+private:
+  typedef DynamicAabbTreeNode Node;
+
+  void Reshape(Node* node);
+  void Balance(Node* node);
+
+  Node* mRoot;
+
 };
