@@ -250,8 +250,8 @@ void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const
 
 void DynamicAabbTree::CastRay(const Ray& ray, CastResults& results)
 {
-  std::stack<Node*> rayStack({mRoot});
-
+  std::stack<Node*> rayStack;
+  if (mRoot) rayStack.push(mRoot);
   while (!rayStack.empty())
   {
     Node* top = rayStack.top();
@@ -274,14 +274,17 @@ void DynamicAabbTree::CastRay(const Ray& ray, CastResults& results)
 
 void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
 {
-  std::stack<Node*> frustumStack({ mRoot });
-
+  std::stack<Node*> frustumStack;
+  if (mRoot) frustumStack.push(mRoot);
   while (!frustumStack.empty())
   {
     Node* top = frustumStack.top();
     frustumStack.pop();
-    if (FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), top->mLastAxis))
+    size_t lastAxis = top->mLastAxis;
+    if (FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), lastAxis)
+      != IntersectionType::Outside)
     {
+      top->mLastAxis = lastAxis;
       if (top->IsLeaf())
       {
         results.AddResult(CastResult(top->mClientData));
@@ -297,8 +300,10 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
 
 void DynamicAabbTree::SelfQuery(QueryResults& results)
 {
-  std::stack<Node*> queryNodes({ mRoot });
+  std::stack<Node*> queryNodes;
   std::stack<std::pair<Node*, Node*>> queryPairs;
+
+  if (mRoot) queryNodes.push(mRoot);
 
   while (!queryNodes.empty())
   {
