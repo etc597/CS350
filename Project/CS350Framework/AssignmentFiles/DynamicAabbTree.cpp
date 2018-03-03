@@ -161,7 +161,7 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
   if (parent == nullptr)
   {
     delete mRoot;
-    mRoot == nullptr;
+    mRoot = nullptr;
     return;
   }
 
@@ -208,7 +208,7 @@ void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const
 
   while (!nodes.empty())
   {
-    nodes.front.mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
+    nodes.front()->mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
     nodes.pop();
   }
 
