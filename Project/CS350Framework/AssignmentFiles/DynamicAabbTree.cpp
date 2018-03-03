@@ -129,6 +129,11 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
   if (walker->mParent)
   {
     walker->IsLeftChild() ? walker->mParent->mLeft = splitNode : walker->mParent->mRight = splitNode;
+    splitNode->mParent = walker->mParent;
+  }
+  else
+  {
+    mRoot = splitNode;
   }
 
   walker->mParent = splitNode;
