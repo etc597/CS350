@@ -154,6 +154,14 @@ void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitio
 void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
 {
   Node* node = (Node*)key.mVoidKey;
+  // we are root, easiest case
+  if (node == mRoot)
+  {
+    delete node;
+    mRoot = nullptr;
+    return;
+  }
+
   Node* sibling = node->GetSibling();
   Node* parent = node->mParent;
   Node* grandparent = parent->mParent;
