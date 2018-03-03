@@ -97,7 +97,7 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
 {
   Node* newNode = new Node;
   newNode->mAabb = Aabb::BuildFromCenterAndHalfExtents(data.mAabb.GetCenter()
-                  , data.mAabb.GetHalfSize() + Vector3(mFatteningFactor));
+                  , data.mAabb.GetHalfSize() * mFatteningFactor);
   newNode->mClientData = data.mClientData;
 
   key.mVoidKey = newNode;
@@ -119,17 +119,17 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
     float saL = Aabb::Combine(left->mAabb, newNode->mAabb).GetSurfaceArea();
     float saR = Aabb::Combine(right->mAabb, newNode->mAabb).GetSurfaceArea();
 
-    saL > saR ? walker = left : walker = right;
+    saL < saR ? walker = left : walker = right;
   }
 
   Node* splitNode = new Node;
   splitNode->mLeft = walker;
   splitNode->mRight = newNode;
 
+  splitNode->mParent = walker->mParent;
   if (walker->mParent)
   {
     walker->IsLeftChild() ? walker->mParent->mLeft = splitNode : walker->mParent->mRight = splitNode;
-    splitNode->mParent = walker->mParent;
   }
   else
   {
@@ -389,7 +389,7 @@ void DynamicAabbTree::Balance(Node * node)
       node->mParent = pivot;
 
       // replace pivot with small child
-      node->mLeft == pivot ? node->mLeft = smallChild : node->mRight == smallChild;
+      node->mLeft == pivot ? node->mLeft = smallChild : node->mRight = smallChild;
       smallChild->mParent = node;
 
       Reshape(node); // fix aabbs and heights
