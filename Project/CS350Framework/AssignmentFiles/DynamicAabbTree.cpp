@@ -227,5 +227,13 @@ void DynamicAabbTree::Reshape(Node * node)
 
 void DynamicAabbTree::Balance(Node * node)
 {
-
+  while (node)
+  {
+    Node* left = node->mLeft;
+    Node* right = node->mRight;
+    if (std::abs(left->mHeight - right->mHeight) > 1)
+    {
+      // actually balance tree
+    }
+  }
 }
