@@ -311,9 +311,41 @@ void DynamicAabbTree::Balance(Node * node)
   {
     Node* left = node->mLeft;
     Node* right = node->mRight;
+
     if (std::abs(left->mHeight - right->mHeight) > 1)
     {
       // actually balance tree
+      Node* pivot = left->mHeight > right->mHeight ? left : right;
+      left = pivot->mLeft;
+      right = pivot->mRight;
+
+      Node* largeChild = left->mAabb.GetVolume() > right->mAabb.GetVolume() ? left : right;
+      Node* smallChild = largeChild->GetSibling();
+
+      Node* grandparent = node->mParent;
+      pivot->mParent = grandparent;
+      if (grandparent)
+      {
+        node->IsLeftChild() ? grandparent->mLeft = pivot : grandparent->mRight = pivot;
+      }
+      else
+      {
+        mRoot = pivot;
+      }
+
+      // replace small child with old parent
+      smallChild->IsLeftChild() ? pivot->mLeft = node : pivot->mRight = node;
+      node->mParent = pivot;
+
+      // replace pivot with small child
+      node->mLeft == pivot ? node->mLeft = smallChild : node->mRight == smallChild;
+      smallChild->mParent = node;
+
+      Reshape(node); // fix aabbs and heights
+
+      node = pivot; // pivot is now balanced, we should continue going up from this point
     }
+
+    node = node->mParent;
   }
 }
