@@ -32,6 +32,7 @@ public:
   Aabb mAabb                   = Aabb();
   void * mClientData           = nullptr;
   int mHeight                  = 0;
+  size_t mLastAxis             = 0;
 };
 
 //--------------------------------------------------------------------DynamicAabbTree

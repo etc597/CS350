@@ -237,14 +237,49 @@ void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const
 
 void DynamicAabbTree::CastRay(const Ray& ray, CastResults& results)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  std::stack<Node*> rayStack({mRoot});
+
+  while (!rayStack.empty())
+  {
+    Node* top = rayStack.top();
+    rayStack.pop();
+    float t = 0.0f;
+    if (RayAabb(ray.mStart, ray.mDirection, top->mAabb.GetMin(), top->mAabb.GetMax(), t))
+    {
+      if (top->IsLeaf())
+      {
+        results.AddResult(CastResult(top->mClientData, t));
+      }
+      else
+      {
+        rayStack.push(top->mLeft);
+        rayStack.push(top->mRight);
+      }
+    }
+  }
 }
 
 void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  std::stack<Node*> frustumStack({ mRoot });
+
+  while (!frustumStack.empty())
+  {
+    Node* top = frustumStack.top();
+    frustumStack.pop();
+    if (FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), top->mLastAxis))
+    {
+      if (top->IsLeaf())
+      {
+        results.AddResult(CastResult(top->mClientData));
+      }
+      else
+      {
+        frustumStack.push(top->mLeft);
+        frustumStack.push(top->mRight);
+      }
+    }
+  }
 }
 
 void DynamicAabbTree::SelfQuery(QueryResults& results)
