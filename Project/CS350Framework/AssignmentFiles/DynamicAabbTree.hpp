@@ -65,9 +65,8 @@ public:
 private:
   typedef DynamicAabbTreeNode Node;
 
-  void FixHeight(Node * node);
-  void Balance(Node* node);
   void Reshape(Node* node);
+  void Balance(Node* node);
 
 
   Node* mRoot;

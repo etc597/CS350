@@ -134,7 +134,6 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
   
   Reshape(splitNode);
   Balance(splitNode);
-  Reshape(splitNode);
 }
 
 void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
@@ -181,9 +180,8 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
   delete node;
   delete parent;
 
-  Reshape(sibling);
+  Reshape(grandparent);
   Balance(sibling);
-  Reshape(sibling);
 }
 
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
@@ -215,14 +213,19 @@ DynamicAabbTreeNode* DynamicAabbTree::GetRoot() const
   return mRoot;
 }
 
-void DynamicAabbTree::FixHeight(Node * node)
+void DynamicAabbTree::Reshape(Node * node)
 {
+  while (node)
+  {
+    Node* left = node->mLeft;
+    Node* right = node->mRight;
+    node->mHeight = std::max(left->mHeight, right->mHeight) + 1;
+    node->mAabb = Aabb::Combine(left->mAabb, right->mAabb);
+    node = node->mParent;
+  }
 }
 
 void DynamicAabbTree::Balance(Node * node)
 {
-}
 
-void DynamicAabbTree::Reshape(Node * node)
-{
 }
