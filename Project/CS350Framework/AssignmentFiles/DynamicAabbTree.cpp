@@ -81,13 +81,16 @@ DynamicAabbTree::~DynamicAabbTree()
   // depth first delete because it doesn't matter how we 'recurse'
   // and stacks are generally faster than queues
   std::stack<Node*> deletionStack;
-  deletionStack.push(mRoot);
+  if(mRoot) deletionStack.push(mRoot);
   while (!deletionStack.empty())
   {
     Node * toDel = deletionStack.top();
     deletionStack.pop();
-    if (toDel->mLeft) deletionStack.push(toDel->mLeft);
-    if (toDel->mRight) deletionStack.push(toDel->mRight);
+    if (!toDel->IsLeaf())
+    {
+      deletionStack.push(toDel->mLeft);
+      deletionStack.push(toDel->mRight);
+    }
     delete toDel;
   }
   
@@ -188,20 +191,24 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
   delete parent;
 
   Reshape(grandparent);
-  Balance(sibling); // TODO: see if we can just balance at the grandparent up
+  Balance(grandparent);
 }
 
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
 {
   // breadth first until we have all nodes of the level
-  std::queue<Node*> nodes({ mRoot });
-  int nodesAtLevel = 1;
-  while (level != 0)
+  std::queue<Node*> nodes;
+  if (mRoot) nodes.push(mRoot);
+  int nodesAtLevel = nodes.size();
+  while (level != 0 && !nodes.empty())
   {
     Node* node = nodes.front();
     nodes.pop();
-    nodes.push(node->mLeft);
-    nodes.push(node->mRight);
+    if (!node->IsLeaf())
+    {
+      nodes.push(node->mLeft);
+      nodes.push(node->mRight);
+    }
 
     --nodesAtLevel;
 
