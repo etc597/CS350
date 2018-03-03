@@ -8,6 +8,7 @@
 
 #include "SpatialPartition.hpp"
 #include "Shapes.hpp"
+#include <stack>
 
 //--------------------------------------------------------------------DynamicAabbTreeNode
 class DynamicAabbTreeNode
@@ -68,7 +69,7 @@ private:
 
   void Reshape(Node* node);
   void Balance(Node* node);
-
+  void SplitNodes(Node* nodeA, Node* nodeB, std::stack<std::pair<Node*, Node*>>& stack);
 
   Node* mRoot;
 

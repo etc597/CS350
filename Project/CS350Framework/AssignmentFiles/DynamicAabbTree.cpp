@@ -284,7 +284,53 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
 
 void DynamicAabbTree::SelfQuery(QueryResults& results)
 {
+  std::stack<Node*> queryNodes({ mRoot });
+  std::stack<std::pair<Node*, Node*>> queryPairs;
 
+  while (!queryNodes.empty())
+  {
+    Node* top = queryNodes.top();
+    queryNodes.pop();
+
+    if (top->IsLeaf()) continue;
+
+    queryPairs.emplace(top->mLeft, top->mRight);
+    queryNodes.push(top->mLeft);
+    queryNodes.push(top->mRight);
+
+    while (!queryPairs.empty())
+    {
+      auto pair = queryPairs.top();
+      queryPairs.pop();
+
+      Node* nodeA = pair.first;
+      Node* nodeB = pair.second;
+
+      // case 1: both leaf                  --> compare aabbs, add to results
+      if (nodeA->IsLeaf() && nodeB->IsLeaf())
+      {
+        if (AabbAabb(nodeA->mAabb.GetMin(), nodeA->mAabb.GetMax(), nodeB->mAabb.GetMin()
+          , nodeB->mAabb.GetMax()))
+        {
+          results.AddResult(QueryResult(nodeA->mClientData, nodeB->mClientData));
+        }
+      }
+      // case 2: one leaf, one internal     --> test internal nodes children against the leaf (pairs)
+      else if (nodeA->IsLeaf() || nodeB->IsLeaf())
+      {
+        Node* leaf = nodeA->IsLeaf() ? nodeA : nodeB;
+        Node* ntrn = nodeA->IsLeaf() ? nodeB : nodeA;
+
+        queryPairs.emplace(leaf, ntrn->mLeft);
+        queryPairs.emplace(leaf, ntrn->mRight);
+      }
+      // case 3: both internal, split nodes --> split nodes
+      else
+      {
+        SplitNodes(nodeA, nodeB, queryPairs);
+      }
+    }
+  }
 }
 
 DynamicAabbTreeNode* DynamicAabbTree::GetRoot() const
@@ -347,4 +393,8 @@ void DynamicAabbTree::Balance(Node * node)
 
     node = node->mParent;
   }
+}
+
+void DynamicAabbTree::SplitNodes(Node * nodeA, Node * nodeB, std::stack<std::pair<Node*, Node*>>& stack)
+{
 }
