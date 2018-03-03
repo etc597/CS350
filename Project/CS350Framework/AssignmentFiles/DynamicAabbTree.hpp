@@ -24,6 +24,7 @@ public:
   bool IsLeaf() const;
   bool IsLeftChild() const;
   bool IsRightChild() const;
+  DynamicAabbTreeNode* GetSibling() const;
 
   DynamicAabbTreeNode* mParent = nullptr;
   DynamicAabbTreeNode* mLeft   = nullptr;
@@ -64,8 +65,10 @@ public:
 private:
   typedef DynamicAabbTreeNode Node;
 
-  void Reshape(Node* node);
+  void FixHeight(Node * node);
   void Balance(Node* node);
+  void Reshape(Node* node);
+
 
   Node* mRoot;
 

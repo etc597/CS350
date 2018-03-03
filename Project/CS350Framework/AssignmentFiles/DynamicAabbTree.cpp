@@ -57,6 +57,15 @@ bool DynamicAabbTreeNode::IsRightChild() const
   return !IsLeftChild();
 }
 
+DynamicAabbTreeNode * DynamicAabbTreeNode::GetSibling() const
+{
+  if (mParent)
+  {
+    return IsLeftChild() ? mParent->mRight : mParent->mLeft;
+  }
+  return nullptr;
+}
+
 //--------------------------------------------------------------------DynamicAabbTree
 const float DynamicAabbTree::mFatteningFactor = 1.1f;
 
@@ -125,6 +134,7 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
   
   Reshape(splitNode);
   Balance(splitNode);
+  Reshape(splitNode);
 }
 
 void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitionData& data)
@@ -142,8 +152,38 @@ void DynamicAabbTree::UpdateData(SpatialPartitionKey& key, const SpatialPartitio
 
 void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  Node* node = (Node*)key.mVoidKey;
+  Node* sibling = node->GetSibling();
+  Node* parent = node->mParent;
+  Node* grandparent = parent->mParent;
+
+  // if our parent is null, we are the root. delete
+  if (parent == nullptr)
+  {
+    delete mRoot;
+    mRoot == nullptr;
+    return;
+  }
+
+  // if our grandparent is null, our sibling will become root
+  if (grandparent == nullptr)
+  {
+    mRoot = sibling;
+    sibling->mParent = nullptr;
+    delete node;
+    delete parent;
+    return;
+  }
+
+  parent->IsLeftChild() ? grandparent->mLeft = sibling : grandparent->mRight = sibling;
+  sibling->mParent = grandparent;
+
+  delete node;
+  delete parent;
+
+  Reshape(sibling);
+  Balance(sibling);
+  Reshape(sibling);
 }
 
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
@@ -172,14 +212,10 @@ void DynamicAabbTree::SelfQuery(QueryResults& results)
 
 DynamicAabbTreeNode* DynamicAabbTree::GetRoot() const
 {
-  /******Student:Assignment3******/
-  // Return the root of your tree so that unit tests can print out the contents
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
-  return nullptr;
+  return mRoot;
 }
 
-void DynamicAabbTree::Reshape(Node * node)
+void DynamicAabbTree::FixHeight(Node * node)
 {
 }
 
@@ -187,3 +223,6 @@ void DynamicAabbTree::Balance(Node * node)
 {
 }
 
+void DynamicAabbTree::Reshape(Node * node)
+{
+}
