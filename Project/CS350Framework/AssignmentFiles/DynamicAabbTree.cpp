@@ -5,6 +5,7 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 #include "Precompiled.hpp"
+#include <queue>
 
 //--------------------------------------------------------------------DynamicAabbTreeNode
 DynamicAabbTreeNode* DynamicAabbTreeNode::GetParent() const
@@ -186,8 +187,52 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
 
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
 {
-  /******Student:Assignment3******/
-  Warn("Assignment3: Required function un-implemented");
+  // breadth first until we have all nodes of the level
+  std::queue<Node*> nodes({ mRoot });
+  int nodesAtLevel = 1;
+  while (level != 0)
+  {
+    Node* node = nodes.front();
+    nodes.pop();
+    nodes.push(node->mLeft);
+    nodes.push(node->mRight);
+
+    --nodesAtLevel;
+
+    if (nodesAtLevel == 0)
+    {
+      nodesAtLevel = nodes.size();
+      --level;
+    }
+  }
+
+  while (!nodes.empty())
+  {
+    nodes.front.mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
+    nodes.pop();
+  }
+
+  /*
+  std::vector<Node*> currLevel({ mRoot });
+  std::vector<Node*> nextLevel;
+  while (level != 0)
+  {
+    for (auto& node : currLevel)
+    {
+      nextLevel.push_back(node->mLeft);
+      nextLevel.push_back(node->mRight);
+    }
+
+    currLevel = nextLevel;
+    nextLevel.clear();
+    --level;
+  }
+
+  for (auto& node : currLevel)
+  {
+    node->mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
+  }
+  */
 }
 
 void DynamicAabbTree::CastRay(const Ray& ray, CastResults& results)
