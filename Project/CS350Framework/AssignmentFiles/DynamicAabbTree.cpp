@@ -348,14 +348,16 @@ void DynamicAabbTree::SelfQuery(QueryResults& results)
       Node* nodeA = pair.first;
       Node* nodeB = pair.second;
 
+      if (!AabbAabb(nodeA->mAabb.GetMin(), nodeA->mAabb.GetMax(), nodeB->mAabb.GetMin()
+        , nodeB->mAabb.GetMax()))
+      {
+        continue;
+      }
+
       // case 1: both leaf                  --> compare aabbs, add to results
       if (nodeA->IsLeaf() && nodeB->IsLeaf())
       {
-        if (AabbAabb(nodeA->mAabb.GetMin(), nodeA->mAabb.GetMax(), nodeB->mAabb.GetMin()
-          , nodeB->mAabb.GetMax()))
-        {
-          results.AddResult(QueryResult(nodeA->mClientData, nodeB->mClientData));
-        }
+        results.AddResult(QueryResult(nodeA->mClientData, nodeB->mClientData));
       }
       // case 2: one leaf, one internal     --> test internal nodes children against the leaf (pairs)
       else if (nodeA->IsLeaf() || nodeB->IsLeaf())
