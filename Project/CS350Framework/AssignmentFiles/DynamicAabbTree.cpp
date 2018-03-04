@@ -285,7 +285,6 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
     if (FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), lastAxis)
       != IntersectionType::Outside)
     {
-      top->mLastAxis = lastAxis;
       if (top->IsLeaf())
       {
         results.AddResult(CastResult(top->mClientData));
@@ -295,6 +294,10 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
         frustumStack.push(top->mLeft);
         frustumStack.push(top->mRight);
       }
+    }
+    else
+    {
+      top->mLastAxis = lastAxis;
     }
   }
 }
