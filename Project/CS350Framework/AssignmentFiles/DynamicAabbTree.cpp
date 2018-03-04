@@ -292,9 +292,15 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
       {
         Node* child = children.top();
         children.pop();
-        results.AddResult(CastResult(child->mClientData));
-        children.push(child->mLeft);
-        children.push(child->mRight);
+        if (!child->IsLeaf())
+        {
+          children.push(child->mLeft);
+          children.push(child->mRight);
+        }
+        else
+        {
+          results.AddResult(CastResult(child->mClientData));
+        }
       }
     }
     else if (intersection != IntersectionType::Outside)
