@@ -119,8 +119,9 @@ void DynamicAabbTree::InsertData(SpatialPartitionKey& key, const SpatialPartitio
     Node* left = walker->mLeft;
     Node* right = walker->mRight;
 
-    float saL = Aabb::Combine(left->mAabb, newNode->mAabb).GetSurfaceArea();
-    float saR = Aabb::Combine(right->mAabb, newNode->mAabb).GetSurfaceArea();
+    // smallest delta surface area
+    float saL = Aabb::Combine(left->mAabb, newNode->mAabb).GetSurfaceArea() - left->mAabb.GetSurfaceArea();
+    float saR = Aabb::Combine(right->mAabb, newNode->mAabb).GetSurfaceArea() - right->mAabb.GetSurfaceArea();
 
     saL < saR ? walker = left : walker = right;
   }
@@ -406,7 +407,7 @@ void DynamicAabbTree::Balance(Node * node)
 
       Reshape(node); // fix aabbs and heights
 
-      node = pivot; // pivot is now balanced, we should continue going up from this point
+      //node = pivot; // pivot is now balanced, we should continue going up from this point
     }
 
     node = node->mParent;
