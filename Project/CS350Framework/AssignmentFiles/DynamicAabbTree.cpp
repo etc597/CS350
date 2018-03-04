@@ -5,7 +5,6 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 #include "Precompiled.hpp"
-#include <queue>
 
 //--------------------------------------------------------------------DynamicAabbTreeNode
 DynamicAabbTreeNode* DynamicAabbTreeNode::GetParent() const
@@ -198,55 +197,25 @@ void DynamicAabbTree::RemoveData(SpatialPartitionKey& key)
 void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const Vector4& color, int bitMask)
 {
   // breadth first until we have all nodes of the level
-  std::queue<Node*> nodes;
-  if (mRoot) nodes.push(mRoot);
-  int nodesAtLevel = nodes.size();
-  while (level != 0 && !nodes.empty())
-  {
-    Node* node = nodes.front();
-    nodes.pop();
-    if (!node->IsLeaf())
-    {
-      nodes.push(node->mLeft);
-      nodes.push(node->mRight);
-    }
-
-    --nodesAtLevel;
-
-    if (nodesAtLevel == 0)
-    {
-      nodesAtLevel = nodes.size();
-      --level;
-    }
-  }
-
+  std::stack<std::pair<Node*, int>> nodes;
+  if (mRoot) nodes.emplace(mRoot, 0);
   while (!nodes.empty())
   {
-    nodes.front()->mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
+    auto pair = nodes.top();
     nodes.pop();
-  }
-
-  /*
-  std::vector<Node*> currLevel({ mRoot });
-  std::vector<Node*> nextLevel;
-  while (level != 0)
-  {
-    for (auto& node : currLevel)
+    Node* top = pair.first;
+    int lvl = pair.second;
+    if (!top->IsLeaf() && lvl < level)
     {
-      nextLevel.push_back(node->mLeft);
-      nextLevel.push_back(node->mRight);
+      nodes.emplace(top->mLeft, lvl + 1);
+      nodes.emplace(top->mRight, lvl + 1);
     }
 
-    currLevel = nextLevel;
-    nextLevel.clear();
-    --level;
+    if (level == -1 || level == lvl)
+    {
+      top->mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
+    }
   }
-
-  for (auto& node : currLevel)
-  {
-    node->mAabb.DebugDraw().SetTransform(transform).Color(color).SetMaskBit(bitMask);
-  }
-  */
 }
 
 void DynamicAabbTree::CastRay(const Ray& ray, CastResults& results)
