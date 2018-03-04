@@ -205,7 +205,7 @@ void DynamicAabbTree::DebugDraw(int level, const Math::Matrix4& transform, const
     nodes.pop();
     Node* top = pair.first;
     int lvl = pair.second;
-    if (!top->IsLeaf() && lvl < level)
+    if (!top->IsLeaf() && (level == -1 || lvl < level))
     {
       nodes.emplace(top->mLeft, lvl + 1);
       nodes.emplace(top->mRight, lvl + 1);
