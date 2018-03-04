@@ -282,8 +282,8 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
     Node* top = frustumStack.top();
     frustumStack.pop();
     size_t lastAxis = top->mLastAxis;
-    if (FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), lastAxis)
-      != IntersectionType::Outside)
+    auto intersection = FrustumAabb(frustum.GetPlanes(), top->mAabb.GetMin(), top->mAabb.GetMax(), lastAxis);
+    if (intersection != IntersectionType::Outside)
     {
       if (top->IsLeaf())
       {
@@ -291,8 +291,19 @@ void DynamicAabbTree::CastFrustum(const Frustum& frustum, CastResults& results)
       }
       else
       {
-        frustumStack.push(top->mLeft);
-        frustumStack.push(top->mRight);
+        if (intersection == IntersectionType::Inside)
+        {
+          std::stack<Node*> children;
+          while (!children.empty())
+          {
+
+          }
+        }
+        else
+        {
+          frustumStack.push(top->mLeft);
+          frustumStack.push(top->mRight);
+        }
       }
     }
     else
