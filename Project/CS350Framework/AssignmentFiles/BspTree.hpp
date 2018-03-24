@@ -20,6 +20,11 @@ public:
   Plane GetSplitPlane() const;
   void GetTriangles(TriangleList& triangles) const;
 
+  BspTreeNode* front;
+  BspTreeNode* back;
+  Plane splitPlane;
+  TriangleList coplanarFront;
+  TriangleList coplanarBack;
 };
 
 //--------------------------------------------------------------------BspTree
@@ -28,6 +33,7 @@ public:
 class BspTree
 {
 public:
+  typedef BspTreeNode Node;
 
   BspTree();
   ~BspTree();
@@ -78,4 +84,7 @@ public:
   void DebugDraw(int level, const Vector4& color, int bitMask = 0);
 
   // Add your implementation here
+private:
+  void Construct(Node*& newNode, const TriangleList& triangles, float k, float epsilon);
+  Node * mRoot;
 };
