@@ -264,16 +264,12 @@ BspTreeNode* BspTree::GetRoot() const
 bool BspTree::RayCast(const Ray& ray, float& t, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
 {
   t = Math::PositiveMax();
-  if (!mRoot)
-  {
-    return false;
-  }
 
   float tMin = 0.0f, tMax = Math::PositiveMax();
 
-  auto res = RayCast(mRoot, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+  RayCast(mRoot, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
 
-  return res;
+  return t != Math::PositiveMax();
 }
 
 void BspTree::AllTriangles(TriangleList& triangles) const
@@ -314,8 +310,30 @@ void BspTree::Subtract(BspTree* tree, float k, float epsilon)
 
 void BspTree::DebugDraw(int level, const Vector4& color, int bitMask)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  std::stack<std::pair<Node*, int>> nodes;
+  if (mRoot) nodes.emplace(mRoot, 0);
+  while (!nodes.empty())
+  {
+    auto pair = nodes.top();
+    nodes.pop();
+    Node* top = pair.first;
+    int lvl = pair.second;
+    if (level == -1 || lvl < level)
+    {
+      if(top->front) nodes.emplace(top->front, lvl + 1);
+      if(top->back) nodes.emplace(top->back, lvl + 1);
+    }
+
+    if (level == -1 || level == lvl)
+    {
+      TriangleList triangles;
+      top->GetTriangles(triangles);
+      for (auto& tri : triangles)
+      {
+        tri.DebugDraw().Color(color).SetMaskBit(bitMask);
+      }
+    }
+  }
 }
 
 void BspTree::Construct(Node *& newNode, const TriangleList & triangles, float k, float epsilon)
@@ -342,8 +360,13 @@ void BspTree::Construct(Node *& newNode, const TriangleList & triangles, float k
   }
 }
 
-bool BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
+void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
 {
+  if (node == nullptr)
+  {
+    return;
+  }
+
   float tPlane;
   Plane& plane = node->splitPlane;
   auto intersection = PointPlane(ray.mStart, plane.mData, planeThicknessEpsilon);
@@ -370,7 +393,16 @@ bool BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     RayCast(farSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     // check plane geometry
-    // don't update
+    TriangleList tris;
+    node->GetTriangles(tris);
+    for (auto& tri : tris)
+    {
+      float triangleT = 0.0f;
+      if (RayTriangle(ray.mStart, ray.mDirection, tri.mPoints[0], tri.mPoints[1], tri.mPoints[2], triangleT, triExpansionEpsilon))
+      {
+        t = std::min(triangleT, t);
+      }
+    }
   }
   else if (res == false)
   {
@@ -381,11 +413,20 @@ bool BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
     RayCast(nearSide, ray, t, tMin, tPlane, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     RayCast(farSide, ray, t, tPlane, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     // check plane triangles
+    TriangleList tris;
+    node->GetTriangles(tris);
+    for (auto& tri : tris)
+    {
+      float triangleT = 0.0f;
+      if (RayTriangle(ray.mStart, ray.mDirection, tri.mPoints[0], tri.mPoints[1], tri.mPoints[2], triangleT, triExpansionEpsilon))
+      {
+        t = std::min(triangleT, t);
+      }
+    }
   }
   else if (tPlane < 0.0f)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
-
   }
   else if (tMax < tPlane)
   {
@@ -395,7 +436,6 @@ bool BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
   else if (0 < tPlane && tPlane < tMin)
   {
     RayCast(farSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
-
   }
 }
 
