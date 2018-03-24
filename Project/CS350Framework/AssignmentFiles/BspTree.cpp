@@ -9,29 +9,23 @@
 //--------------------------------------------------------------------BspTreeNode
 BspTreeNode* BspTreeNode::GetFrontChild() const
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
-  return nullptr;
+  return front;
 }
 
 BspTreeNode* BspTreeNode::GetBackChild() const
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
-  return nullptr;
+  return back;
 }
 
 Plane BspTreeNode::GetSplitPlane() const
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
-  return Plane();
+  return splitPlane;
 }
 
 void BspTreeNode::GetTriangles(TriangleList& triangles) const
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  triangles = coplanarFront;
+  triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
 }
 
 bool InFront(IntersectionType::Type type)
@@ -143,6 +137,16 @@ BspTree::BspTree()
 
 BspTree::~BspTree()
 {
+  std::stack<Node*> toDel;
+  if (mRoot) toDel.push(mRoot);
+  while (!toDel.empty())
+  {
+    Node* node = toDel.top();
+    toDel.pop();
+    if (node->front) toDel.push(node->front);
+    if (node->back) toDel.push(node->back);
+    delete node;
+  }
 }
 
 void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleList& coplanarFront, TriangleList& coplanarBack, TriangleList& front, TriangleList& back, float epsilon)
@@ -259,10 +263,17 @@ BspTreeNode* BspTree::GetRoot() const
 
 bool BspTree::RayCast(const Ray& ray, float& t, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
   t = Math::PositiveMax();
-  return false;
+  if (!mRoot)
+  {
+    return false;
+  }
+
+  float tMin = 0.0f, tMax = Math::PositiveMax();
+
+  auto res = RayCast(mRoot, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+
+  return res;
 }
 
 void BspTree::AllTriangles(TriangleList& triangles) const
@@ -328,6 +339,63 @@ void BspTree::Construct(Node *& newNode, const TriangleList & triangles, float k
   if (!back.empty())
   {
     Construct(node.back, back, k, epsilon);
+  }
+}
+
+bool BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
+{
+  float tPlane;
+  Plane& plane = node->splitPlane;
+  auto intersection = PointPlane(ray.mStart, plane.mData, planeThicknessEpsilon);
+  Node* nearSide;
+  Node* farSide;
+
+  auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
+
+  if (InFront(intersection))
+  {
+    nearSide = node->front;
+    farSide = node->back;
+  }
+  else
+  {
+    farSide = node->front;
+    nearSide = node->back;
+  }
+
+  float te = Math::Abs(planeThicknessEpsilon / Math::Dot(plane.GetNormal(), ray.mDirection));
+
+  if (Coplanar(intersection))
+  {
+    RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    RayCast(farSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    // check plane geometry
+    // don't update
+  }
+  else if (res == false)
+  {
+    RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+  }
+  else if (tMin - te <= tPlane && tPlane <= tMax + te)
+  {
+    RayCast(nearSide, ray, t, tMin, tPlane, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    RayCast(farSide, ray, t, tPlane, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    // check plane triangles
+  }
+  else if (tPlane < 0.0f)
+  {
+    RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+
+  }
+  else if (tMax < tPlane)
+  {
+    RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+
+  }
+  else if (0 < tPlane && tPlane < tMin)
+  {
+    RayCast(farSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+
   }
 }
 

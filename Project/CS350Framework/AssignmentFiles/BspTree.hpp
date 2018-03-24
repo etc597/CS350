@@ -86,5 +86,6 @@ public:
   // Add your implementation here
 private:
   void Construct(Node*& newNode, const TriangleList& triangles, float k, float epsilon);
+  bool RayCast(Node* node, const Ray& ray, float& t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex);
   Node * mRoot;
 };
