@@ -24,7 +24,7 @@ Plane BspTreeNode::GetSplitPlane() const
 
 void BspTreeNode::GetTriangles(TriangleList& triangles) const
 {
-  triangles = coplanarFront;
+  triangles.insert(triangles.end(), coplanarFront.begin(), coplanarFront.end());
   triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
 }
 
@@ -243,6 +243,7 @@ void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
   TriangleList front, back;
   for (auto& tri : triangles)
   {
+    // TODO don't use split triangle here like an idiot
     SplitTriangle(node.splitPlane, tri, node.coplanarFront, node.coplanarBack, front, back, epsilon);
   }
 
@@ -274,14 +275,41 @@ bool BspTree::RayCast(const Ray& ray, float& t, float planeThicknessEpsilon, flo
 
 void BspTree::AllTriangles(TriangleList& triangles) const
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  std::stack<Node*> toGet;
+  if (mRoot) toGet.push(mRoot);
+  while (!toGet.empty())
+  {
+    Node* node = toGet.top();
+    toGet.pop();
+    if (node->front) toGet.push(node->front);
+    if (node->back) toGet.push(node->back);
+    node->GetTriangles(triangles);
+  }
 }
 
 void BspTree::Invert()
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  std::stack<Node*> toInvert;
+  if (mRoot) toInvert.push(mRoot);
+  while (!toInvert.empty())
+  {
+    Node* node = toInvert.top();
+    toInvert.pop();
+    if (node->front) toInvert.push(node->front);
+    if (node->back) toInvert.push(node->back);
+
+    node->splitPlane.mData *= -1;
+
+    TriangleList triangles;
+    node->GetTriangles(triangles);
+
+    for (auto& tri : triangles)
+    {
+      std::swap(tri.mPoints[0], tri.mPoints[1]);
+    }
+
+    std::swap(node->front, node->back);
+  }
 }
 
 void BspTree::ClipTo(BspTree* tree, float epsilon)
