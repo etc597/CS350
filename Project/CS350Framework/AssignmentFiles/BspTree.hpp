@@ -14,7 +14,7 @@ typedef std::vector<Triangle> TriangleList;
 class BspTreeNode
 {
 public:
-  
+  BspTreeNode() : front(nullptr), back(nullptr) { }
   BspTreeNode* GetFrontChild() const;
   BspTreeNode* GetBackChild() const;
   Plane GetSplitPlane() const;
