@@ -365,10 +365,11 @@ void BspTree::Invert()
 
     node->splitPlane.mData *= -1;
 
-    TriangleList triangles;
-    node->GetTriangles(triangles);
-
-    for (auto& tri : triangles)
+    for (auto& tri : node->coplanarFront)
+    {
+      std::swap(tri.mPoints[0], tri.mPoints[1]);
+    }
+    for (auto& tri : node->coplanarBack)
     {
       std::swap(tri.mPoints[0], tri.mPoints[1]);
     }
