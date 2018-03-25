@@ -19,6 +19,7 @@ public:
   BspTreeNode* GetBackChild() const;
   Plane GetSplitPlane() const;
   void GetTriangles(TriangleList& triangles) const;
+  void AddTriangles(const TriangleList& triangles);
   void ClipTo(BspTreeNode* node, float epsilon);
   void ClipTriangles(TriangleList& triangles, float epsilon);
   void ClipTriangle(Triangle& triangle, TriangleList& results, float epsilon);
@@ -26,8 +27,7 @@ public:
   BspTreeNode* front;
   BspTreeNode* back;
   Plane splitPlane;
-  TriangleList coplanarFront;
-  TriangleList coplanarBack;
+  TriangleList nodeTriangles;
 };
 
 //--------------------------------------------------------------------BspTree

@@ -24,23 +24,23 @@ Plane BspTreeNode::GetSplitPlane() const
 
 void BspTreeNode::GetTriangles(TriangleList& triangles) const
 {
-  if (!coplanarFront.empty())
-  {
-    triangles.insert(triangles.end(), coplanarFront.begin(), coplanarFront.end());
-  }
+  if (nodeTriangles.empty()) return;
 
-  if (!coplanarBack.empty())
-  {
-    triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
-  }
+  triangles.insert(triangles.end(), nodeTriangles.begin(), nodeTriangles.end());
+}
+
+void BspTreeNode::AddTriangles(const TriangleList & triangles)
+{
+  if (triangles.empty()) return;
+
+  nodeTriangles.insert(nodeTriangles.end(), triangles.begin(), triangles.end());
 }
 
 void BspTreeNode::ClipTo(BspTreeNode* node, float epsilon)
 {
   if (!node) return;
 
-  node->ClipTriangles(coplanarFront, epsilon);
-  node->ClipTriangles(coplanarBack, epsilon);
+  node->ClipTriangles(nodeTriangles, epsilon);
 
   if (front) front->ClipTo(node, epsilon);
   if (back) back->ClipTo(node, epsilon);
@@ -306,11 +306,13 @@ void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
   Node& node = *mRoot;
   node.splitPlane = Plane(triangles[index]);
 
-  TriangleList front, back;
+  TriangleList front, back, coplanarFront, coplanarBack;
   for (auto& tri : triangles)
   {
-    SplitTriangle(node.splitPlane, tri, node.coplanarFront, node.coplanarBack, front, back, epsilon);
+    SplitTriangle(node.splitPlane, tri, coplanarFront, coplanarBack, front, back, epsilon);
   }
+  node.AddTriangles(coplanarFront);
+  node.AddTriangles(coplanarBack);
 
   if (!front.empty())
   {
@@ -365,11 +367,7 @@ void BspTree::Invert()
 
     node->splitPlane.mData *= -1;
 
-    for (auto& tri : node->coplanarFront)
-    {
-      std::swap(tri.mPoints[0], tri.mPoints[1]);
-    }
-    for (auto& tri : node->coplanarBack)
+    for (auto& tri : node->nodeTriangles)
     {
       std::swap(tri.mPoints[0], tri.mPoints[1]);
     }
@@ -449,11 +447,13 @@ void BspTree::Construct(Node *& newNode, const TriangleList & triangles, float k
   size_t index = triangles.size() == 1 ? 0 : PickSplitPlane(triangles, k, epsilon);
   node.splitPlane = Plane(triangles[index]);
 
-  TriangleList front, back;
+  TriangleList front, back, coplanarFront, coplanarBack;
   for (auto& tri : triangles)
   {
-    SplitTriangle(node.splitPlane, tri, node.coplanarFront, node.coplanarBack, front, back, epsilon);
+    SplitTriangle(node.splitPlane, tri, coplanarFront, coplanarBack, front, back, epsilon);
   }
+  node.AddTriangles(coplanarFront);
+  node.AddTriangles(coplanarBack);
 
   if (!front.empty())
   {
