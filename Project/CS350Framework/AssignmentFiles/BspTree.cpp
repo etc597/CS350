@@ -82,12 +82,12 @@ void BspTreeNode::ClipTriangle(Triangle& triangle, TriangleList& results, float 
 
 bool InFront(IntersectionType::Type type)
 {
-  return type == IntersectionType::Outside;
+  return type == IntersectionType::Inside;
 }
 
 bool Behind(IntersectionType::Type type)
 {
-  return type == IntersectionType::Inside;
+  return type == IntersectionType::Outside;
 }
 
 bool Coplanar(IntersectionType::Type type)
@@ -199,10 +199,10 @@ void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleLis
   
   switch (intersection)
   {
-  case IntersectionType::Outside:
+  case IntersectionType::Inside:
     front.push_back(tri);
     break;
-  case IntersectionType::Inside:
+  case IntersectionType::Outside:
     back.push_back(tri);
     break;
   case IntersectionType::Coplanar:
@@ -217,8 +217,8 @@ void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleLis
     std::vector<Point> backPoints;
     for (unsigned i = 0; i < 3; ++i)
     {
-      auto A = tri.mPoints[i - 1 % 3];
-      auto B = tri.mPoints[i];
+      auto A = tri.mPoints[i];
+      auto B = tri.mPoints[(i + 1) % 3];
 
       ClippingTable(A, B, plane, frontPoints, backPoints, epsilon);
     }
