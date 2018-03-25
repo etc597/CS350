@@ -503,8 +503,7 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
     nearSide = node->back;
   }
 
-  float te = Math::Abs(planeThicknessEpsilon / Math::Dot(plane.GetNormal(), ray.mDirection));
-
+  // edge case 1
   if (Coplanar(intersection))
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
@@ -524,13 +523,19 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
     return;
   }
 
+  // edge case 2
   auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
-
   if (res == false)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    return;
   }
-  else if (tMin - te <= tPlane && tPlane <= tMax + te)
+
+  float te = Math::Abs(planeThicknessEpsilon / Math::Dot(plane.GetNormal(), ray.mDirection));
+  // case 1
+  tMin -= te;
+  tMax += te;
+  if (tMin - te <= tPlane && tPlane <= tMax + te)
   {
     RayCast(nearSide, ray, t, tMin, tPlane, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     RayCast(farSide, ray, t, tPlane, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
@@ -546,15 +551,18 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
       }
     }
   }
+  // case 2
   else if (tPlane < 0.0f)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
   }
+  // case 3
   else if (tMax < tPlane)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
 
   }
+  // case 4
   else if (0 < tPlane && tPlane < tMin)
   {
     RayCast(farSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
