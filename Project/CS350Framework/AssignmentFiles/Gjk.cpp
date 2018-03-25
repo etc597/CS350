@@ -99,7 +99,8 @@ Vector3 SphereSupportShape::GetCenter() const
 
 Vector3 SphereSupportShape::Support(const Vector3& worldDirection) const
 {
-  return Vector3::cZero;
+  Vector3 normalDir = worldDirection.AttemptNormalized();
+  return GetCenter() + mSphere.mRadius * normalDir;
 }
 
 void SphereSupportShape::DebugDraw(const Vector4& color) const
@@ -116,9 +117,12 @@ Vector3 ObbSupportShape::GetCenter() const
 
 Vector3 ObbSupportShape::Support(const Vector3& worldDirection) const
 {
-  /******Student:Assignment5******/
-  // Note: A unit obb spans from [-0.5, to 0.5]. Make sure to properly account for this.
-  Warn("Assignment5: Required function un-implemented");
+  Vector3 result = GetCenter();
+  Vector3 localDir = Math::Transform(mRotation.Inverted(), worldDirection);
+  for (auto i = 0; i < 3; ++i)
+  {
+    result += Math::GetSign(localDir[i]) * mScale[i] * mRotation.Basis(i);
+  }
   return Vector3::cZero;
 }
 
