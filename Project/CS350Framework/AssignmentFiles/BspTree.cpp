@@ -172,7 +172,7 @@ void ConstructTrianglesForList(const std::vector<Point>& points, const Plane& pl
 
 
   // if we have a quad
-  if (points.size == 4)
+  if (points.size() == 4)
   {
     auto tri2 = Triangle(points[0], points[2], points[3]);
     PlaneTriangle(plane.mData, tri2.mPoints[0], tri2.mPoints[1], tri2.mPoints[2], epsilon) == IntersectionType::Coplanar
@@ -206,9 +206,11 @@ void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleLis
     back.push_back(tri);
     break;
   case IntersectionType::Coplanar:
+  {
     float dot = Math::Dot(plane.GetNormal(), Plane(tri).GetNormal());
     dot >= 0 ? coplanarFront.push_back(tri) : coplanarBack.push_back(tri);
     break;
+  }
   case IntersectionType::Overlaps:
   {
     std::vector<Point> frontPoints;
@@ -225,6 +227,7 @@ void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleLis
   }
     break;
   default:
+    break;
   }
 
 }
@@ -254,6 +257,7 @@ float BspTree::CalculateScore(const TriangleList& triangles, size_t testIndex, f
       ++ns;
       break;
     default:
+      break;
     }
   }
 
