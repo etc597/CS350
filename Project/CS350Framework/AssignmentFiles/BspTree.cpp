@@ -28,6 +28,58 @@ void BspTreeNode::GetTriangles(TriangleList& triangles) const
   triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
 }
 
+void BspTreeNode::ClipTo(BspTreeNode* node, float epsilon)
+{
+  if (!node) return;
+
+  node->ClipTriangles(coplanarFront, epsilon);
+  node->ClipTriangles(coplanarBack, epsilon);
+
+  if (front) front->ClipTo(node, epsilon);
+  if (back) back->ClipTo(node, epsilon);
+}
+
+void BspTreeNode::ClipTriangles(TriangleList& triangles, float epsilon)
+{
+  TriangleList result;
+  for (auto& tri : triangles)
+  {
+    ClipTriangle(tri, result, epsilon);
+  }
+  triangles = result;
+}
+
+void BspTreeNode::ClipTriangle(Triangle& triangle, TriangleList& results, float epsilon)
+{
+  TriangleList rFront, rBack; // since we want them grouped anyways, just use 2 lists
+  BspTree::SplitTriangle(splitPlane, triangle, rFront, rBack, rFront, rBack, epsilon);
+
+  // if on the back side of a plane that has no back children -> solid leaf
+  if (back)
+  {
+    for (auto& tri : rFront)
+    {
+      back->ClipTriangle(tri, results, epsilon);
+    }
+  }
+  else
+  {
+    // no - op, don't add the back triangles to the results
+  }
+
+  if (front)
+  {
+    for (auto& tri : rFront)
+    {
+      front->ClipTriangle(tri, results, epsilon);
+    }
+  }
+  else
+  {
+    results.insert(results.end(), rFront.begin(), rFront.end());
+  }
+}
+
 bool InFront(IntersectionType::Type type)
 {
   return type == IntersectionType::Outside;
@@ -132,21 +184,13 @@ void ConstructTrianglesForList(const std::vector<Point>& points, const Plane& pl
 
 //--------------------------------------------------------------------BspTree
 BspTree::BspTree()
+  : mRoot(nullptr)
 {
 }
 
 BspTree::~BspTree()
 {
-  std::stack<Node*> toDel;
-  if (mRoot) toDel.push(mRoot);
-  while (!toDel.empty())
-  {
-    Node* node = toDel.top();
-    toDel.pop();
-    if (node->front) toDel.push(node->front);
-    if (node->back) toDel.push(node->back);
-    delete node;
-  }
+  Destruct();
 }
 
 void BspTree::SplitTriangle(const Plane& plane, const Triangle& tri, TriangleList& coplanarFront, TriangleList& coplanarBack, TriangleList& front, TriangleList& back, float epsilon)
@@ -235,6 +279,11 @@ size_t BspTree::PickSplitPlane(const TriangleList& triangles, float k, float eps
 
 void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
 {
+  if (mRoot)
+  {
+    Destruct();
+  }
+
   size_t index = PickSplitPlane(triangles, k, epsilon);
   mRoot = new Node;
   Node& node = *mRoot;
@@ -243,7 +292,6 @@ void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
   TriangleList front, back;
   for (auto& tri : triangles)
   {
-    // TODO don't use split triangle here like an idiot
     SplitTriangle(node.splitPlane, tri, node.coplanarFront, node.coplanarBack, front, back, epsilon);
   }
 
@@ -314,26 +362,37 @@ void BspTree::Invert()
 
 void BspTree::ClipTo(BspTree* tree, float epsilon)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  mRoot->ClipTo(tree->mRoot, epsilon);
 }
 
 void BspTree::Union(BspTree* tree, float k, float epsilon)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  mRoot->ClipTo(tree->mRoot, epsilon);
+  tree->mRoot->ClipTo(mRoot, epsilon);
+
+  // Remove Coplanar faces
+  tree->Invert();
+  tree->mRoot->ClipTo(mRoot, epsilon);
+  tree->Invert();
+
+  TriangleList results;
+  AllTriangles(results);
+  tree->AllTriangles(results);
+  Construct(results, k, epsilon);
 }
 
 void BspTree::Intersection(BspTree* tree, float k, float epsilon)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  Invert();
+  tree->Invert();
+  Union(tree, k, epsilon);
+  Invert();
 }
 
 void BspTree::Subtract(BspTree* tree, float k, float epsilon)
 {
-  /******Student:Assignment4******/
-  Warn("Assignment4: Required function un-implemented");
+  tree->Invert();
+  Intersection(tree, k, epsilon);
 }
 
 void BspTree::DebugDraw(int level, const Vector4& color, int bitMask)
@@ -385,6 +444,20 @@ void BspTree::Construct(Node *& newNode, const TriangleList & triangles, float k
   if (!back.empty())
   {
     Construct(node.back, back, k, epsilon);
+  }
+}
+
+void BspTree::Destruct()
+{
+  std::stack<Node*> toDel;
+  if (mRoot) toDel.push(mRoot);
+  while (!toDel.empty())
+  {
+    Node* node = toDel.top();
+    toDel.pop();
+    if (node->front) toDel.push(node->front);
+    if (node->back) toDel.push(node->back);
+    delete node;
   }
 }
 

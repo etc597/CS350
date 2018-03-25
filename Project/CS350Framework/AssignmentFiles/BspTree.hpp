@@ -19,6 +19,9 @@ public:
   BspTreeNode* GetBackChild() const;
   Plane GetSplitPlane() const;
   void GetTriangles(TriangleList& triangles) const;
+  void ClipTo(BspTreeNode* node, float epsilon);
+  void ClipTriangles(TriangleList& triangles, float epsilon);
+  void ClipTriangle(Triangle& triangle, TriangleList& results, float epsilon);
 
   BspTreeNode* front;
   BspTreeNode* back;
@@ -86,6 +89,7 @@ public:
   // Add your implementation here
 private:
   void Construct(Node*& newNode, const TriangleList& triangles, float k, float epsilon);
+  void Destruct();
   void RayCast(Node* node, const Ray& ray, float& t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex);
   Node * mRoot;
 };
