@@ -139,8 +139,6 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   size_t& newSize, int newIndices[4],
   Vector3& closestPoint, Vector3& searchDirection)
 {
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
   closestPoint = p0;
   return VoronoiRegion::Point0;
 }
@@ -149,9 +147,6 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   size_t& newSize, int newIndices[4],
   Vector3& closestPoint, Vector3& searchDirection)
 {
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
-
   float u, v;
   BarycentricCoordinates(q, p0, p1, u, v);
 
@@ -169,15 +164,15 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   return VoronoiRegion::Edge01;
 }
 
+struct uv { float u; float v; };
+uv p0p1;
+uv p1p2;
+uv p2p0;
+
 VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& p0, const Vector3& p1, const Vector3& p2,
   size_t& newSize, int newIndices[4],
   Vector3& closestPoint, Vector3& searchDirection)
 {
-  struct uv { float u; float v; };
-  uv p0p1;
-  uv p1p2;
-  uv p2p0;
-
   BarycentricCoordinates(q, p0, p1, p0p1.u, p0p1.v); // line coords
   BarycentricCoordinates(q, p1, p2, p1p2.u, p1p2.v); // line coords
   BarycentricCoordinates(q, p2, p0, p2p0.u, p2p0.v); // line coords
@@ -234,8 +229,86 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   size_t& newSize, int newIndices[4],
   Vector3& closestPoint, Vector3& searchDirection)
 {
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
+  uv p0p1, p1p2, p0p2;
+  uv p0p3, p2p3, p1p3;
+  BarycentricCoordinates(q, p0, p1, p0p1.u, p0p1.v);
+  BarycentricCoordinates(q, p1, p2, p1p2.u, p1p2.v);
+  BarycentricCoordinates(q, p0, p2, p0p2.u, p0p2.v);
+  BarycentricCoordinates(q, p0, p3, p0p3.u, p0p3.v);
+  BarycentricCoordinates(q, p2, p3, p2p3.u, p2p3.v);
+  BarycentricCoordinates(q, p1, p3, p1p3.u, p1p3.v);
+
+  if (p0p1.v <= 0 && p0p2.v <= 0 && p0p3.v <= 0)
+  {
+    closestPoint = p0;
+    return VoronoiRegion::Point0;
+  }
+
+  if (p0p1.u <= 0 && p1p2.v <= 0 && p1p3.v <= 0)
+  {
+    closestPoint = p1;
+    return VoronoiRegion::Point1;
+  }
+
+  if (p1p2.u <= 0 && p0p2.u <= 0 && p2p3.v <= 0)
+  {
+    closestPoint = p2;
+    return VoronoiRegion::Point2;
+  }
+
+  if (p0p3.u <= 0 && p2p3.u <= 0 && p1p3.u <= 0)
+  {
+    closestPoint = p3;
+    return VoronoiRegion::Point3;
+  }
+  struct uvw { float u; float v; float w; }; // assuming u - 1st, v - 2nd, w - 3rd points. else swap u and w
+  uvw p0p1p2, p0p2p3, p0p1p3, p1p2p3;
+  BarycentricCoordinates(q, p0, p1, p2, p0p1p2.u, p0p1p2.v, p0p1p2.w);
+  BarycentricCoordinates(q, p0, p2, p3, p0p2p3.u, p0p2p3.v, p0p2p3.w);
+  BarycentricCoordinates(q, p0, p1, p3, p0p1p3.u, p0p1p3.v, p0p1p3.w);
+  BarycentricCoordinates(q, p1, p2, p3, p1p2p3.u, p1p2p3.v, p1p2p3.w);
+
+  if (p0p1.u > 0 && p0p1.v > 0 && p0p1p2.w < 0 && p0p1p3.w < 0)
+  {
+    closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    return VoronoiRegion::Edge01;
+  }
+
+  if (p0p2.u > 0 && p0p2.v > 0 && p0p1p2.v < 0 && p0p2p3.w < 0)
+  {
+    closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    return VoronoiRegion::Edge02;
+  }
+
+  if (p0p3.u > 0 && p0p3.v > 0 && p0p1p3.v < 0 && p0p2p3.v < 0)
+  {
+    closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    return VoronoiRegion::Edge03;
+  }
+
+  if (p1p2.u > 0 && p1p2.v > 0 && p0p1p2.u < 0 && p1p2p3.w < 0)
+  {
+    closestPoint = p1p2.u * p2 + p1p2.v * p1;
+    return VoronoiRegion::Edge12;
+  }
+
+  if (p1p3.u > 0 && p1p3.v > 0 && p0p1p3.u < 0 && p1p2p3.v < 0)
+  {
+    closestPoint = p1p3.u * p3 + p1p3.v * p1;
+    return VoronoiRegion::Edge13;
+  }
+
+  if (p2p3.u > 0 && p2p3.v > 0 && p0p2p3.u < 0 && p1p2p3.u < 0)
+  {
+    closestPoint = p2p3.u * p3 + p2p3.v * p2;
+    return VoronoiRegion::Edge23;
+  }
+
+  if (p0p1p2.u > 0 && p0p1p2.v > 0 && p0p1p2.w > 0)
+  {
+
+  }
+
   return VoronoiRegion::Unknown;
 }
 
