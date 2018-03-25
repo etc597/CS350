@@ -24,8 +24,15 @@ Plane BspTreeNode::GetSplitPlane() const
 
 void BspTreeNode::GetTriangles(TriangleList& triangles) const
 {
-  triangles.insert(triangles.end(), coplanarFront.begin(), coplanarFront.end());
-  triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
+  if (!coplanarFront.empty())
+  {
+    triangles.insert(triangles.end(), coplanarFront.begin(), coplanarFront.end());
+  }
+
+  if (!coplanarBack.empty())
+  {
+    triangles.insert(triangles.end(), coplanarBack.begin(), coplanarBack.end());
+  }
 }
 
 void BspTreeNode::ClipTo(BspTreeNode* node, float epsilon)
@@ -288,6 +295,12 @@ void BspTree::Construct(const TriangleList& triangles, float k, float epsilon)
     Destruct();
   }
 
+  // only return after destroying - empty triangle list implies empty tree
+  if (triangles.empty())
+  {
+    return;
+  }
+
   size_t index = PickSplitPlane(triangles, k, epsilon);
   mRoot = new Node;
   Node& node = *mRoot;
@@ -463,6 +476,7 @@ void BspTree::Destruct()
     if (node->back) toDel.push(node->back);
     delete node;
   }
+  mRoot = nullptr;
 }
 
 void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float tMax, float planeThicknessEpsilon, float triExpansionEpsilon, int debuggingIndex)
@@ -477,8 +491,6 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
   auto intersection = PointPlane(ray.mStart, plane.mData, planeThicknessEpsilon);
   Node* nearSide;
   Node* farSide;
-
-  auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
 
   if (InFront(intersection))
   {
@@ -508,8 +520,13 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
         t = std::min(triangleT, t);
       }
     }
+
+    return;
   }
-  else if (res == false)
+
+  auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
+
+  if (res == false)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
   }
