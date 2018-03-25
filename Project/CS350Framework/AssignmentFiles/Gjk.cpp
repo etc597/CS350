@@ -15,7 +15,7 @@ Vector3 SupportShape::GetCenter(const std::vector<Vector3>& localPoints, const M
     center += pt;
   }
 
-  center /= localPoints.size();
+  center /= (float)localPoints.size();
   return TransformPoint(transform, center);
 }
 
