@@ -533,14 +533,12 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
   }
 
   float te = Math::Abs(planeThicknessEpsilon / Math::Dot(plane.GetNormal(), ray.mDirection));
-  tMin -= te;
-  tMax += te;
 
   // case 1
   if (tMin - te <= tPlane && tPlane <= tMax + te)
   {
-    RayCast(nearSide, ray, t, tMin, tPlane, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
-    RayCast(farSide, ray, t, tPlane, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    RayCast(nearSide, ray, t, tMin, tPlane + te, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
+    RayCast(farSide, ray, t, tPlane - te, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
     // check plane triangles
     TriangleList tris;
     node->GetTriangles(tris);
