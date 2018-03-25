@@ -10,23 +10,43 @@
 Vector3 SupportShape::GetCenter(const std::vector<Vector3>& localPoints, const Matrix4& transform) const
 {
   Vector3 center = Vector3::cZero;
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
-  return center;
+  for (auto& pt : localPoints)
+  {
+    center += pt;
+  }
+
+  center /= localPoints.size();
+  return TransformPoint(transform, center);
 }
 
 Vector3 SupportShape::Support(const Vector3& worldDirection, const std::vector<Vector3>& localPoints, const Matrix4& localToWorldTransform) const
 {
   Vector3 result = Vector3::cZero;
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
-  return result;
+  //Vector3 center = GetCenter(localPoints, Matrix4::cIdentity);
+  Matrix4 worldToLocal = localToWorldTransform.Inverted();
+
+  Vector3 locDir = TransformDirection(worldToLocal, worldDirection);
+
+  float furthest = Math::NegativeMin();
+  for (auto& pt : localPoints)
+  {
+    float dist = Math::Dot(locDir, pt);// -center);
+    if (dist > furthest)
+    {
+      furthest = dist;
+      result = pt;
+    }
+  }
+
+  return Math::TransformPoint(localToWorldTransform, result);
 }
 
 void SupportShape::DebugDraw(const std::vector<Vector3>& localPoints, const Matrix4& localToWorldTransform, const Vector4& color) const
 {
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
+  for (auto& pt : localPoints)
+  {
+    gDebugDrawer->DrawPoint(pt).SetTransform(localToWorldTransform).Color(color);
+  }
 }
 
 //-----------------------------------------------------------------------------ModelSupportShape
@@ -79,8 +99,6 @@ Vector3 SphereSupportShape::GetCenter() const
 
 Vector3 SphereSupportShape::Support(const Vector3& worldDirection) const
 {
-  /******Student:Assignment5******/
-  Warn("Assignment5: Required function un-implemented");
   return Vector3::cZero;
 }
 
