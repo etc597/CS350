@@ -225,6 +225,15 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   return VoronoiRegion::Unknown;
 }
 
+bool CheckNormal(const Vector3& q, const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d)
+{
+  // d - interior point. a,b,c triangle surface
+  Vector3 normal = Math::Cross(b - a, c - a);
+  if (Math::Dot(normal, d - a) > 0)
+    normal *= -1;
+  return Math::Dot(normal, q - a) > 0;
+}
+
 VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3,
   size_t& newSize, int newIndices[4],
   Vector3& closestPoint, Vector3& searchDirection)
@@ -304,12 +313,33 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
     return VoronoiRegion::Edge23;
   }
 
-  if (p0p1p2.u > 0 && p0p1p2.v > 0 && p0p1p2.w > 0)
-  {
 
+  if (p0p1p2.u > 0 && p0p1p2.v > 0 && p0p1p2.w > 0 && CheckNormal(q, p0, p1, p2, p3))
+  {
+    closestPoint = p0p1p2.u * p0 + p0p1p2.v * p3 + p0p1p2.w * p2;
+    return VoronoiRegion::Triangle012;
   }
 
-  return VoronoiRegion::Unknown;
+  if (p0p2p3.u > 0 && p0p2p3.v > 0 && p0p2p3.w > 0 && CheckNormal(q, p0, p2, p3, p1))
+  {
+    closestPoint = p0p2p3.u * p0 + p0p2p3.v * p2 + p0p2p3.w * p3;
+    return VoronoiRegion::Triangle023;
+  }
+
+  if (p0p1p3.u > 0 && p0p1p3.v > 0 && p0p1p3.w > 0 && CheckNormal(q, p0, p1, p3, p2))
+  {
+    closestPoint = p0p1p3.u * p0 + p0p1p3.v * p1 + p0p1p3.w * p3;
+    return VoronoiRegion::Triangle013;
+  }
+
+  if (p1p2p3.u > 0 && p1p2p3.v > 0 && p1p2p3.w > 0 && CheckNormal(q, p1, p2, p3, p0))
+  {
+    closestPoint = p1p2p3.u * p1 + p1p2p3.v * p2 + p1p2p3.w * p3;
+    return VoronoiRegion::Triangle123;
+  }
+
+  closestPoint = q;
+  return VoronoiRegion::Tetrahedra0123;
 }
 
 Gjk::Gjk()
