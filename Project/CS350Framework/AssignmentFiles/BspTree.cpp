@@ -61,19 +61,6 @@ void BspTreeNode::ClipTriangle(Triangle& triangle, TriangleList& results, float 
   TriangleList rFront, rBack; // since we want them grouped anyways, just use 2 lists
   BspTree::SplitTriangle(splitPlane, triangle, rFront, rBack, rFront, rBack, epsilon);
 
-  // if on the back side of a plane that has no back children -> solid leaf
-  if (back)
-  {
-    for (auto& tri : rFront)
-    {
-      back->ClipTriangle(tri, results, epsilon);
-    }
-  }
-  else
-  {
-    // no - op, don't add the back triangles to the results
-  }
-
   if (front)
   {
     for (auto& tri : rFront)
@@ -84,6 +71,19 @@ void BspTreeNode::ClipTriangle(Triangle& triangle, TriangleList& results, float 
   else
   {
     results.insert(results.end(), rFront.begin(), rFront.end());
+  }
+
+  // if on the back side of a plane that has no back children -> solid leaf
+  if (back)
+  {
+    for (auto& tri : rBack)
+    {
+      back->ClipTriangle(tri, results, epsilon);
+    }
+  }
+  else
+  {
+    // no - op, don't add the back triangles to the results
   }
 }
 
