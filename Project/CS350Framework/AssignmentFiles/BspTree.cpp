@@ -522,9 +522,10 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
 
     return;
   }
+  
+  auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
 
   // edge case 2
-  auto res = RayPlane(ray.mStart, ray.mDirection, plane.mData, tPlane);
   if (res == false)
   {
     RayCast(nearSide, ray, t, tMin, tMax, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
@@ -532,9 +533,10 @@ void BspTree::RayCast(Node * node, const Ray & ray, float & t, float tMin, float
   }
 
   float te = Math::Abs(planeThicknessEpsilon / Math::Dot(plane.GetNormal(), ray.mDirection));
-  // case 1
   tMin -= te;
   tMax += te;
+
+  // case 1
   if (tMin - te <= tPlane && tPlane <= tMax + te)
   {
     RayCast(nearSide, ray, t, tMin, tPlane, planeThicknessEpsilon, triExpansionEpsilon, debuggingIndex);
