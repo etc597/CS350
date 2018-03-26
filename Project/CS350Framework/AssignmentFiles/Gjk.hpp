@@ -141,4 +141,5 @@ public:
   
 
   // Add your implementation here
+  int GetFreeIndex(int indices[4], size_t size);
 };

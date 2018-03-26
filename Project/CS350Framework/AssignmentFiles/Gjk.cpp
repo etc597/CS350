@@ -473,43 +473,66 @@ Gjk::Gjk()
 
 bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsigned int maxIterations, CsoPoint& closestPoint, float epsilon, int debuggingIndex, bool debugDraw)
 {
-  unsigned index = 0;
+  unsigned iter = 0;
   Vector3 searchDir = shapeB->GetCenter() - shapeA->GetCenter();
+  if (searchDir == Vector3::cZero)
+  {
+    searchDir = -Vector3::cXAxis;
+  }
   
-  int indices[4] = { 0, 1 };
+  int indices[4] = { 0 };
   size_t size = 2;
   Vector3 Q = Vector3::cZero; // origin
-  Vector3 P = shapeA->Support(searchDir) - shapeB->Support(searchDir);
+  closestPoint = ComputeSupport(shapeA, shapeB, searchDir);
+  Vector3 P = closestPoint.mCsoPoint;
   searchDir = Q - P;
-  Vector3 simplex[4] = { P };
-  P = shapeA->Support(searchDir) - shapeB->Support(searchDir);
-  simplex[1] = P;
+  CsoPoint simplex[4] = { closestPoint };
 
-  while (index < maxIterations)
+  while (iter < maxIterations)
   {
-    Vector3 prevP = P;
     switch (size)
     {
     case 1:
-      IdentifyVoronoiRegion(Q, simplex[0], size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, size, indices, P, searchDir);
       break;
     case 2:
-      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, size, indices, P, searchDir);
       break;
     case 3:
-      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], simplex[2], size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, size, indices, P, searchDir);
       break;
     case 4:
-      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], simplex[2], simplex[3], size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, simplex[indices[3]].mCsoPoint, size, indices, P, searchDir);
       break;
     }
 
-    if (P == Vector3::cZero || Math::Dot(Q - P, searchDir) < epsilon)
+    for (size_t i = 0; i < size; ++i)
+    {
+      if (P == simplex[indices[i]].mCsoPoint)
+      {
+        closestPoint = simplex[indices[i]];
+      }
+    }
+
+    if (P == Q)
+    {
+      return true;
+    }
+
+    auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
+
+    // if Q - newPoint * search < Q - P * search, terminate, also some other early out conditions
+    if (Math::Dot(P - newPoint.mCsoPoint, searchDir) <= epsilon)
     {
       break;
     }
 
-    ++index;
+    // add new point to simplex and repeat
+    indices[size] = GetFreeIndex(indices, size);
+    simplex[indices[size]] = newPoint;
+    ++size;
+
+    ++iter;
   }
   return false;
 }
@@ -521,4 +544,19 @@ Gjk::CsoPoint Gjk::ComputeSupport(const SupportShape* shapeA, const SupportShape
   result.mPointB = shapeB->Support(-direction);
   result.mCsoPoint = result.mPointA - result.mPointB;
   return result;
+}
+
+int Gjk::GetFreeIndex(int indices[4], size_t size)
+{
+
+  for (auto i = 0; i < 4; ++i)
+  {
+    bool found = false;
+    for (size_t j = 0; j < size; ++j)
+    {
+      if (indices[j] == i) { found = true;  break; }
+    }
+    if (!found) return i;
+  }
+  return -1;
 }
