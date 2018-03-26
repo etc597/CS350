@@ -140,6 +140,9 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   Vector3& closestPoint, Vector3& searchDirection)
 {
   closestPoint = p0;
+  searchDirection = q - closestPoint;
+  newSize = 1;
+  newIndices[0] = 0;
   return VoronoiRegion::Point0;
 }
 
@@ -150,17 +153,27 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   float u, v;
   BarycentricCoordinates(q, p0, p1, u, v);
 
-  if (u <= 0) {
+  if (v <= 0) {
     closestPoint = p0;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 0;
     return VoronoiRegion::Point0;
   }
 
-  if (u >= 1) {
-    closestPoint = p0;
+  if (v >= 1) {
+    closestPoint = p1;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 1;
     return VoronoiRegion::Point1;
   }
 
   closestPoint = u * p0 + v * p1;
+  searchDirection = q - closestPoint;
+  newSize = 2;
+  newIndices[0] = 0;
+  newIndices[1] = 1;
   return VoronoiRegion::Edge01;
 }
 
