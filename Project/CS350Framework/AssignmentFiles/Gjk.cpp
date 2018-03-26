@@ -289,26 +289,39 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   if (p0p1.v <= 0 && p0p2.v <= 0 && p0p3.v <= 0)
   {
     closestPoint = p0;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 0;
     return VoronoiRegion::Point0;
   }
 
   if (p0p1.u <= 0 && p1p2.v <= 0 && p1p3.v <= 0)
   {
     closestPoint = p1;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 1;
     return VoronoiRegion::Point1;
   }
 
   if (p1p2.u <= 0 && p0p2.u <= 0 && p2p3.v <= 0)
   {
     closestPoint = p2;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 2;
     return VoronoiRegion::Point2;
   }
 
   if (p0p3.u <= 0 && p2p3.u <= 0 && p1p3.u <= 0)
   {
     closestPoint = p3;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 3;
     return VoronoiRegion::Point3;
   }
+
   struct uvw { float u; float v; float w; }; // assuming u - 1st, v - 2nd, w - 3rd points. else swap u and w
   uvw p0p1p2, p0p2p3, p0p1p3, p1p2p3;
   BarycentricCoordinates(q, p0, p1, p2, p0p1p2.u, p0p1p2.v, p0p1p2.w);
@@ -318,37 +331,56 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
 
   if (p0p1.u > 0 && p0p1.v > 0 && p0p1p2.w < 0 && p0p1p3.w < 0)
   {
-    closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    closestPoint = p0p1.u * p1 + p0p1.v * p0;
+    searchDirection = q - closestPoint;
+    newSize = 2;
+    newIndices[0] = 0;
+    newIndices[1] = 1;
     return VoronoiRegion::Edge01;
   }
 
   if (p0p2.u > 0 && p0p2.v > 0 && p0p1p2.v < 0 && p0p2p3.w < 0)
   {
-    closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    closestPoint = p0p2.u * p2 + p0p2.v * p0;
+    newSize = 2;
+    newIndices[0] = 0;
+    newIndices[1] = 2;
     return VoronoiRegion::Edge02;
   }
 
   if (p0p3.u > 0 && p0p3.v > 0 && p0p1p3.v < 0 && p0p2p3.v < 0)
   {
     closestPoint = p0p3.u * p3 + p0p3.v * p0;
+    newSize = 2;
+    newIndices[0] = 0;
+    newIndices[1] = 3;
     return VoronoiRegion::Edge03;
   }
 
   if (p1p2.u > 0 && p1p2.v > 0 && p0p1p2.u < 0 && p1p2p3.w < 0)
   {
     closestPoint = p1p2.u * p2 + p1p2.v * p1;
+    newSize = 2;
+    newIndices[0] = 1;
+    newIndices[1] = 2;
     return VoronoiRegion::Edge12;
   }
 
   if (p1p3.u > 0 && p1p3.v > 0 && p0p1p3.u < 0 && p1p2p3.v < 0)
   {
     closestPoint = p1p3.u * p3 + p1p3.v * p1;
+    newSize = 2;
+    newIndices[0] = 1;
+    newIndices[1] = 3;
     return VoronoiRegion::Edge13;
   }
 
   if (p2p3.u > 0 && p2p3.v > 0 && p0p2p3.u < 0 && p1p2p3.u < 0)
   {
     closestPoint = p2p3.u * p3 + p2p3.v * p2;
+    newSize = 2;
+    newIndices[0] = 2;
+    newIndices[1] = 3;
     return VoronoiRegion::Edge23;
   }
 
@@ -356,28 +388,55 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   if (p0p1p2.u > 0 && p0p1p2.v > 0 && p0p1p2.w > 0 && CheckNormal(q, p0, p1, p2, p3))
   {
     closestPoint = p0p1p2.u * p0 + p0p1p2.v * p3 + p0p1p2.w * p2;
+    searchDirection = q - closestPoint;
+    newSize = 3;
+    newIndices[0] = 0;
+    newIndices[1] = 1;
+    newIndices[2] = 2;
     return VoronoiRegion::Triangle012;
   }
 
   if (p0p2p3.u > 0 && p0p2p3.v > 0 && p0p2p3.w > 0 && CheckNormal(q, p0, p2, p3, p1))
   {
     closestPoint = p0p2p3.u * p0 + p0p2p3.v * p2 + p0p2p3.w * p3;
+    searchDirection = q - closestPoint;
+    newSize = 3;
+    newIndices[0] = 0;
+    newIndices[1] = 2;
+    newIndices[2] = 3;
     return VoronoiRegion::Triangle023;
   }
 
   if (p0p1p3.u > 0 && p0p1p3.v > 0 && p0p1p3.w > 0 && CheckNormal(q, p0, p1, p3, p2))
   {
     closestPoint = p0p1p3.u * p0 + p0p1p3.v * p1 + p0p1p3.w * p3;
+    searchDirection = q - closestPoint;
+    newSize = 3;
+    newIndices[0] = 0;
+    newIndices[1] = 1;
+    newIndices[2] = 3;
     return VoronoiRegion::Triangle013;
   }
 
   if (p1p2p3.u > 0 && p1p2p3.v > 0 && p1p2p3.w > 0 && CheckNormal(q, p1, p2, p3, p0))
   {
     closestPoint = p1p2p3.u * p1 + p1p2p3.v * p2 + p1p2p3.w * p3;
+    searchDirection = q - closestPoint;
+    newSize = 3;
+    newIndices[0] = 1;
+    newIndices[1] = 2;
+    newIndices[2] = 3;
     return VoronoiRegion::Triangle123;
   }
 
   closestPoint = q;
+  searchDirection = q - closestPoint;
+  newSize = 4;
+  newIndices[0] = 0;
+  newIndices[1] = 1;
+  newIndices[2] = 2;
+  newIndices[3] = 3;
+
   return VoronoiRegion::Tetrahedra0123;
 }
 
