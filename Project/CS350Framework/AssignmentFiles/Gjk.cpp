@@ -555,6 +555,7 @@ void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, int indice
 {
   switch (size - 1)
   {
+  case 0:
   case 1:
     closestPoint = simplex[indices[0]];
     break;
