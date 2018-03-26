@@ -10,12 +10,16 @@
 Vector3 SupportShape::GetCenter(const std::vector<Vector3>& localPoints, const Matrix4& transform) const
 {
   Vector3 center = Vector3::cZero;
-  for (auto& pt : localPoints)
-  {
-    center += pt;
-  }
+  Vector3 min(Math::PositiveMax());
+  Vector3 max(Math::NegativeMin());
 
-  center /= (float)localPoints.size();
+  for (auto& pt : localPoints) {
+    for (unsigned i = 0; i < 3; ++i) {
+      min[i] = Math::Min(pt[i], min[i]);
+      max[i] = Math::Max(pt[i], max[i]);
+    }
+  }
+  center = 0.5f * (max + min);
   return TransformPoint(transform, center);
 }
 
