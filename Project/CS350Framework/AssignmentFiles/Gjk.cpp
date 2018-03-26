@@ -478,7 +478,7 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
   
   int indices[4] = { 0 };
   size_t size = 1;
-  Vector3 Q = Vector3::cZero; // origin
+  const Vector3 Q = Vector3::cZero; // origin
   closestPoint = ComputeSupport(shapeA, shapeB, searchDir);
   Vector3 P = closestPoint.mCsoPoint;
   searchDir = Q - P;
@@ -508,17 +508,17 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
     }
 
     auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
+    ++size;
 
     // if Q - newPoint * search < Q - P * search, terminate, also some other early out conditions
-    if (Math::Distance(P - newPoint.mCsoPoint, searchDir) <= epsilon)
+    if (Math::Dot(newPoint.mCsoPoint - P, searchDir) <= epsilon)
     {
       break;
     }
 
     // add new point to simplex and repeat
-    indices[size] = GetFreeIndex(indices, size);
-    simplex[indices[size]] = newPoint;
-    ++size;
+    indices[size - 1] = GetFreeIndex(indices, size - 1);
+    simplex[indices[size - 1]] = newPoint;
 
     ++iter;
   }
