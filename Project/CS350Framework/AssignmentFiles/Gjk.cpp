@@ -477,7 +477,7 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
   Vector3 searchDir = shapeB->GetCenter() - shapeA->GetCenter();
   
   int indices[4] = { 0 };
-  size_t size = 2;
+  size_t size = 1;
   Vector3 Q = Vector3::cZero; // origin
   closestPoint = ComputeSupport(shapeA, shapeB, searchDir);
   Vector3 P = closestPoint.mCsoPoint;
