@@ -531,6 +531,8 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
 
     ++iter;
   }
+
+  ReconstructPoint(P, closestPoint, indices, simplex, size);
   return false;
 }
 
@@ -556,4 +558,35 @@ int Gjk::GetFreeIndex(int indices[4], size_t size)
     if (!found) return i;
   }
   return -1;
+}
+
+void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, int indices[4], CsoPoint simplex[4], size_t size)
+{
+  switch (size - 1)
+  {
+  case 1:
+    closestPoint = simplex[indices[0]];
+    break;
+  case 2:
+  {
+    float u, v;
+    BarycentricCoordinates(P, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, u, v);
+    closestPoint.mCsoPoint = P;
+    closestPoint.mPointA = ConstructPoint(u, v, simplex[indices[0]].mPointA, simplex[indices[1]].mPointA);
+    closestPoint.mPointB = ConstructPoint(u, v, simplex[indices[0]].mPointB, simplex[indices[1]].mPointB);
+  }
+    break;
+  case 3:
+  {
+    float u, v, w;
+    BarycentricCoordinates(P, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, u, v, w);
+    closestPoint.mCsoPoint = P;
+    closestPoint.mPointA = ConstructPoint(u, v, w, simplex[indices[0]].mPointA, simplex[indices[1]].mPointA, simplex[indices[2]].mPointA);
+    closestPoint.mPointB = ConstructPoint(u, v, w, simplex[indices[0]].mPointB, simplex[indices[1]].mPointB, simplex[indices[2]].mPointB);
+  }
+    break;
+  case 4:
+    // idk yet
+    break;
+  }
 }
