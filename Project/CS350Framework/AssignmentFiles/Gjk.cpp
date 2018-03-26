@@ -473,15 +473,52 @@ Gjk::Gjk()
 
 bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsigned int maxIterations, CsoPoint& closestPoint, float epsilon, int debuggingIndex, bool debugDraw)
 {
-  Warn("Assignment5: Required function un-implemented");
+  unsigned index = 0;
+  Vector3 searchDir = shapeB->GetCenter() - shapeA->GetCenter();
+  
+  int indices[4] = { 0, 1 };
+  size_t size = 2;
+  Vector3 Q = Vector3::cZero; // origin
+  Vector3 P = shapeA->Support(searchDir) - shapeB->Support(searchDir);
+  searchDir = Q - P;
+  Vector3 simplex[4] = { P };
+  P = shapeA->Support(searchDir) - shapeB->Support(searchDir);
+  simplex[1] = P;
+
+  while (index < maxIterations)
+  {
+    Vector3 prevP = P;
+    switch (size)
+    {
+    case 1:
+      IdentifyVoronoiRegion(Q, simplex[0], size, indices, P, searchDir);
+      break;
+    case 2:
+      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], size, indices, P, searchDir);
+      break;
+    case 3:
+      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], simplex[2], size, indices, P, searchDir);
+      break;
+    case 4:
+      IdentifyVoronoiRegion(Q, simplex[0], simplex[1], simplex[2], simplex[3], size, indices, P, searchDir);
+      break;
+    }
+
+    if (P == Vector3::cZero || Math::Dot(Q - P, searchDir) < epsilon)
+    {
+      break;
+    }
+
+    ++index;
+  }
   return false;
 }
 
 Gjk::CsoPoint Gjk::ComputeSupport(const SupportShape* shapeA, const SupportShape* shapeB, const Vector3& direction)
 {
-  /******Student:Assignment5******/
   CsoPoint result;
-  Warn("Assignment5: Required function un-implemented");
-
+  result.mPointA = shapeA->Support(direction);
+  result.mPointB = shapeB->Support(-direction);
+  result.mCsoPoint = result.mPointA - result.mPointB;
   return result;
 }
