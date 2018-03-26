@@ -502,6 +502,7 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
       break;
     }
 
+    // not super accurate, need a better reconstruction
     for (size_t i = 0; i < size; ++i)
     {
       if (P == simplex[indices[i]].mCsoPoint)
@@ -518,10 +519,10 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
     auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
 
     // if Q - newPoint * search < Q - P * search, terminate, also some other early out conditions
-    //if (Math::Dot(P - newPoint.mCsoPoint, searchDir) <= epsilon)
-    //{
-    //  break;
-    //}
+    if (Math::Distance(P - newPoint.mCsoPoint, searchDir) <= epsilon)
+    {
+      break;
+    }
 
     // add new point to simplex and repeat
     indices[size] = GetFreeIndex(indices, size);
