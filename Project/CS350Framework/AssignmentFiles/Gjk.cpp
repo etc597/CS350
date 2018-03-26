@@ -193,18 +193,27 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   if (p0p1.v <= 0 && p2p0.u <= 0)
   {
     closestPoint = p0;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 0;
     return VoronoiRegion::Point0;
   }
 
   if (p1p2.v <= 0 && p0p1.u <= 0)
   {
     closestPoint = p1;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 1;
     return VoronoiRegion::Point1;
   }
 
   if (p2p0.v <= 0 && p1p2.u <= 0)
   {
     closestPoint = p2;
+    searchDirection = q - closestPoint;
+    newSize = 1;
+    newIndices[0] = 2;
     return VoronoiRegion::Point2;
   }
 
@@ -214,24 +223,41 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   if (u > 0 && v > 0 && w > 0)
   {
     closestPoint = u * p0 + v * p1 + w * p2;
+    searchDirection = q - closestPoint;
+    newSize = 3;
+    newIndices[0] = 0;
+    newIndices[1] = 1;
+    newIndices[2] = 2;
     return VoronoiRegion::Triangle012;
   }
 
   if (w < 0 && p0p1.u > 0 && p0p1.v > 0)
   {
     closestPoint = p0p1.u * p1 + p0p1.v * p0;
+    searchDirection = q - closestPoint;
+    newSize = 2;
+    newIndices[0] = 0;
+    newIndices[1] = 1;
     return VoronoiRegion::Edge01;
   }
 
   if (u < 0 && p1p2.u > 0 && p1p2.v > 0)
   {
     closestPoint = p1p2.u * p2 + p1p2.v * p1;
+    searchDirection = q - closestPoint;
+    newSize = 2;
+    newIndices[0] = 1;
+    newIndices[1] = 2;
     return VoronoiRegion::Edge12;
   }
 
   if (v < 0 && p2p0.u > 0 && p2p0.v > 0)
   {
     closestPoint = p2p0.u * p0 + p2p0.v * p2;
+    searchDirection = q - closestPoint;
+    newSize = 2;
+    newIndices[0] = 0;
+    newIndices[1] = 2;
     return VoronoiRegion::Edge02;
   }
 
