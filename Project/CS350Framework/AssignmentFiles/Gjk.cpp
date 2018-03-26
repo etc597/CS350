@@ -123,7 +123,7 @@ Vector3 ObbSupportShape::Support(const Vector3& worldDirection) const
   {
     result += Math::GetSign(localDir[i]) * mScale[i] * mRotation.Basis(i);
   }
-  return Vector3::cZero;
+  return result;
 }
 
 void ObbSupportShape::DebugDraw(const Vector4& color) const
