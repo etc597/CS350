@@ -475,10 +475,6 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
 {
   unsigned iter = 0;
   Vector3 searchDir = shapeB->GetCenter() - shapeA->GetCenter();
-  if (searchDir == Vector3::cZero)
-  {
-    searchDir = -Vector3::cXAxis;
-  }
   
   int indices[4] = { 0 };
   size_t size = 2;
