@@ -502,15 +502,6 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
       break;
     }
 
-    // not super accurate, need a better reconstruction
-    for (size_t i = 0; i < size; ++i)
-    {
-      if (P == simplex[indices[i]].mCsoPoint)
-      {
-        closestPoint = simplex[indices[i]];
-      }
-    }
-
     if (P == Q)
     {
       return true;
