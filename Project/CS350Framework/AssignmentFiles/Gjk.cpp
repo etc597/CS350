@@ -121,7 +121,7 @@ Vector3 ObbSupportShape::Support(const Vector3& worldDirection) const
   Vector3 localDir = Math::Transform(mRotation.Inverted(), worldDirection);
   for (auto i = 0; i < 3; ++i)
   {
-    result += Math::GetSign(localDir[i]) * mScale[i] * mRotation.Basis(i);
+    result += Math::GetSign(localDir[i]) * 0.5f * mScale[i] * mRotation.Basis(i);
   }
   return result;
 }
