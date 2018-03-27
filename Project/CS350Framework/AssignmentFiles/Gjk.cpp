@@ -247,17 +247,6 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
   float u, v, w;
   BarycentricCoordinates(q, p0, p1, p2, u, v, w);    // tri  coords
 
-  if (u > 0 && v > 0 && w > 0)
-  {
-    closestPoint = ConstructPoint(u, v, w, p0, p1, p2);
-    searchDirection = q - closestPoint;
-    newSize = 3;
-    newIndices[0] = 0;
-    newIndices[1] = 1;
-    newIndices[2] = 2;
-    return VoronoiRegion::Triangle012;
-  }
-
   if (w < 0 && p0p1.u > 0 && p0p1.v > 0)
   {
     closestPoint = ConstructPoint(p0p1, p0, p1);
@@ -288,7 +277,13 @@ VoronoiRegion::Type Gjk::IdentifyVoronoiRegion(const Vector3& q, const Vector3& 
     return VoronoiRegion::Edge02;
   }
 
-  return VoronoiRegion::Unknown;
+  closestPoint = ConstructPoint(u, v, w, p0, p1, p2);
+  searchDirection = q - closestPoint;
+  newSize = 3;
+  newIndices[0] = 0;
+  newIndices[1] = 1;
+  newIndices[2] = 2;
+  return VoronoiRegion::Triangle012;
 }
 
 bool CheckNormal(const Vector3& q, const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d)
@@ -478,31 +473,32 @@ Gjk::Gjk()
 bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsigned int maxIterations, CsoPoint& closestPoint, float epsilon, int debuggingIndex, bool debugDraw)
 {
   unsigned iter = 0;
-  Vector3 searchDir = shapeB->GetCenter() - shapeA->GetCenter();
+  Vector3 searchDir = shapeA->GetCenter() - shapeB->GetCenter();
   
-  int indices[4] = { 0 };
   size_t size = 1;
   const Vector3 Q = Vector3::cZero; // origin
   closestPoint = ComputeSupport(shapeA, shapeB, searchDir);
   Vector3 P = closestPoint.mCsoPoint;
   searchDir = Q - P;
   CsoPoint simplex[4] = { closestPoint };
+  size_t newSize = size;
 
   while (iter < maxIterations)
   {
+    int newIndices[4];
     switch (size)
     {
     case 1:
-      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[0].mCsoPoint, newSize, newIndices, P, searchDir);
       break;
     case 2:
-      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[0].mCsoPoint, simplex[1].mCsoPoint, newSize, newIndices, P, searchDir);
       break;
     case 3:
-      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[0].mCsoPoint, simplex[1].mCsoPoint, simplex[2].mCsoPoint, newSize, newIndices, P, searchDir);
       break;
     case 4:
-      IdentifyVoronoiRegion(Q, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, simplex[indices[3]].mCsoPoint, size, indices, P, searchDir);
+      IdentifyVoronoiRegion(Q, simplex[0].mCsoPoint, simplex[1].mCsoPoint, simplex[2].mCsoPoint, simplex[3].mCsoPoint, newSize, newIndices, P, searchDir);
       break;
     }
 
@@ -511,30 +507,30 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
       return true;
     }
 
+    searchDir.AttemptNormalize();
+
     auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
+
+    for (size_t i = 0; i < newSize; ++i)
+    {
+      simplex[i] = simplex[newIndices[i]];
+    }
+    size = newSize;
+    simplex[size] = newPoint;
     ++size;
 
-    // if Q - newPoint * search < Q - P * search, terminate, also some other early out conditions
-    if (Math::Dot(newPoint.mCsoPoint - P, searchDir) <= epsilon)
+    // i'm guessing this condition is bad
+    float dist = Math::Dot(newPoint.mCsoPoint - P, searchDir);
+    if (dist <= epsilon)
     {
       break;
     }
-
-    if (size > 4)
-    {
-      break; // can't something something aaa
-    }
-
-    // add new point to simplex and repeat
-    indices[size - 1] = GetFreeIndex(indices, size - 1);
-    simplex[indices[size - 1]] = newPoint;
-
 
     ++iter;
   }
 
   // size will be one larger since we "added" a point
-  ReconstructPoint(P, closestPoint, indices, simplex, size - 1);
+  ReconstructPoint(P, closestPoint, simplex, newSize);
   return false;
 }
 
@@ -562,29 +558,29 @@ int Gjk::GetFreeIndex(int indices[4], size_t size)
   return -1;
 }
 
-void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, int indices[4], CsoPoint simplex[4], size_t size)
+void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, CsoPoint simplex[4], size_t size)
 {
   switch (size)
   {
   case 1:
-    closestPoint = simplex[indices[0]];
+    closestPoint = simplex[0];
     break;
   case 2:
   {
     float u, v;
-    BarycentricCoordinates(P, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, u, v);
+    BarycentricCoordinates(P, simplex[0].mCsoPoint, simplex[1].mCsoPoint, u, v);
     closestPoint.mCsoPoint = P;
-    closestPoint.mPointA = ConstructPoint(u, v, simplex[indices[0]].mPointA, simplex[indices[1]].mPointA);
-    closestPoint.mPointB = ConstructPoint(u, v, simplex[indices[0]].mPointB, simplex[indices[1]].mPointB);
+    closestPoint.mPointA = ConstructPoint(u, v, simplex[0].mPointA, simplex[1].mPointA);
+    closestPoint.mPointB = ConstructPoint(u, v, simplex[0].mPointB, simplex[1].mPointB);
   }
     break;
   case 3:
   {
     float u, v, w;
-    BarycentricCoordinates(P, simplex[indices[0]].mCsoPoint, simplex[indices[1]].mCsoPoint, simplex[indices[2]].mCsoPoint, u, v, w);
+    BarycentricCoordinates(P, simplex[0].mCsoPoint, simplex[1].mCsoPoint, simplex[2].mCsoPoint, u, v, w);
     closestPoint.mCsoPoint = P;
-    closestPoint.mPointA = ConstructPoint(u, v, w, simplex[indices[0]].mPointA, simplex[indices[1]].mPointA, simplex[indices[2]].mPointA);
-    closestPoint.mPointB = ConstructPoint(u, v, w, simplex[indices[0]].mPointB, simplex[indices[1]].mPointB, simplex[indices[2]].mPointB);
+    closestPoint.mPointA = ConstructPoint(u, v, w, simplex[0].mPointA, simplex[1].mPointA, simplex[2].mPointA);
+    closestPoint.mPointB = ConstructPoint(u, v, w, simplex[0].mPointB, simplex[1].mPointB, simplex[2].mPointB);
   }
     break;
   case 4:

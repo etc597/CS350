@@ -142,5 +142,5 @@ public:
 
   // Add your implementation here
   int GetFreeIndex(int indices[4], size_t size);
-  void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, int indices[4], CsoPoint simplex[4], size_t size);
+  void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, CsoPoint simplex[4], size_t size);
 };
