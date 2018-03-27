@@ -519,7 +519,6 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
     simplex[size] = newPoint;
     ++size;
 
-    // i'm guessing this condition is bad
     float dist = Math::Dot(newPoint.mCsoPoint - P, searchDir);
     if (dist <= epsilon)
     {
@@ -529,7 +528,6 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
     ++iter;
   }
 
-  // size will be one larger since we "added" a point
   ReconstructPoint(P, closestPoint, simplex, newSize);
   return false;
 }
@@ -541,21 +539,6 @@ Gjk::CsoPoint Gjk::ComputeSupport(const SupportShape* shapeA, const SupportShape
   result.mPointB = shapeB->Support(-direction);
   result.mCsoPoint = result.mPointA - result.mPointB;
   return result;
-}
-
-int Gjk::GetFreeIndex(int indices[4], size_t size)
-{
-
-  for (auto i = 0; i < 4; ++i)
-  {
-    bool found = false;
-    for (size_t j = 0; j < size; ++j)
-    {
-      if (indices[j] == i) { found = true;  break; }
-    }
-    if (!found) return i;
-  }
-  return -1;
 }
 
 void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, CsoPoint simplex[4], size_t size)
@@ -582,9 +565,6 @@ void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, CsoPoint s
     closestPoint.mPointA = ConstructPoint(u, v, w, simplex[0].mPointA, simplex[1].mPointA, simplex[2].mPointA);
     closestPoint.mPointB = ConstructPoint(u, v, w, simplex[0].mPointB, simplex[1].mPointB, simplex[2].mPointB);
   }
-    break;
-  case 4:
-    // idk yet
     break;
   }
 }
