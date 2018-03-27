@@ -520,14 +520,21 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
       break;
     }
 
+    if (size > 4)
+    {
+      break; // can't something something aaa
+    }
+
     // add new point to simplex and repeat
     indices[size - 1] = GetFreeIndex(indices, size - 1);
     simplex[indices[size - 1]] = newPoint;
 
+
     ++iter;
   }
 
-  ReconstructPoint(P, closestPoint, indices, simplex, size);
+  // size will be one larger since we "added" a point
+  ReconstructPoint(P, closestPoint, indices, simplex, size - 1);
   return false;
 }
 
@@ -557,9 +564,8 @@ int Gjk::GetFreeIndex(int indices[4], size_t size)
 
 void Gjk::ReconstructPoint(const Vector3& P, CsoPoint & closestPoint, int indices[4], CsoPoint simplex[4], size_t size)
 {
-  switch (size - 1)
+  switch (size)
   {
-  case 0:
   case 1:
     closestPoint = simplex[indices[0]];
     break;
