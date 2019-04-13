@@ -486,6 +486,7 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
   while (iter < maxIterations)
   {
     int newIndices[4];
+    size_t newSize;
     switch (size)
     {
     case 1:
@@ -509,26 +510,26 @@ bool Gjk::Intersect(const SupportShape* shapeA, const SupportShape* shapeB, unsi
 
     searchDir.AttemptNormalize();
 
-    auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
-
     for (size_t i = 0; i < newSize; ++i)
     {
       simplex[i] = simplex[newIndices[i]];
     }
     size = newSize;
-    simplex[size] = newPoint;
-    ++size;
 
+    auto newPoint = ComputeSupport(shapeA, shapeB, searchDir);
     float dist = Math::Dot(newPoint.mCsoPoint - P, searchDir);
     if (dist <= epsilon)
     {
       break;
     }
 
+    simplex[size] = newPoint;
+    ++size;
+
     ++iter;
   }
 
-  ReconstructPoint(P, closestPoint, simplex, newSize);
+  ReconstructPoint(P, closestPoint, simplex, size);
   return false;
 }
 
